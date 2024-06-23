@@ -19,12 +19,16 @@ const FollowedUsers = () => {
      */
     const[users, setUsers] = useState([]);
     const[loading, setLoading] = useState(false);
+
     /**
      * states Redux
      */
     const theme = useSelector(state => state.posts.themeW);
     const link = useSelector(state => state.posts.linkBaseBackend);
 
+    /**
+     * useEffect
+     */
     useEffect(() => {
       setLoading(true);
       fetch(`${link}/pages/page-dashboard-follow-user/${params.id}`)

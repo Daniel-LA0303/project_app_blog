@@ -24,23 +24,19 @@ const ReplyComment = ({
     const replyCommentFunc = async () => {
         try {
 
-            const res = await axios.post(`${link}/posts/save-reply-comment/${idPost}`, {
-                userID,
-                commentId : comment._id,
+            const res = await axios.post(`${link}/replies/new-reply/${comment._id}`, {
                 reply: replyComment,
-                dateReply: new Date()
+                userID,
+                postID: idPost
             })
 
-            const repliesF = res.data.filter(reply => reply._id === comment._id);
-            // console.log(repliesF);
             editCommentRedux({
                 userID: comment.userID,
                 comment: comment.comment,
                 dateComment: comment.dateComment,
                 _id: comment._id,
-                replies: repliesF[0].replies
+                replies: res.data.replies
             })
-            console.log(res.data);
         } catch (error) {
             console.log(error);
         }

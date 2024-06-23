@@ -24,7 +24,7 @@ const NewComment = ({ user, idPost, comments, userPost }) => {
         const data = {
             userID: user._id,
             comment: comment,
-            dateComment: new Date(),
+            // dateComment: new Date(),
         }
         newCommentRedux({
             userID: user,
@@ -33,7 +33,8 @@ const NewComment = ({ user, idPost, comments, userPost }) => {
             replies: []
         });
         try {
-            await axios.post(`${link}/posts/save-comment/${id}`, {data, userPost});
+            // await axios.post(`${link}/posts/save-comment/${id}`, {data, userPost});
+            await axios.post(`${link}/comments/new-comment/${id}`, data);
             console.log('emit');
             // socket.emit('newComment' ,data);
         } catch (error) {

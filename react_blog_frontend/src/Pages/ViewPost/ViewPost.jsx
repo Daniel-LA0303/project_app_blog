@@ -52,18 +52,19 @@ const ViewPost = () => {
   const[numberLike, setNumberLike] =  useState(0);
   const[save, setSave] = useState(false);
   const[numberSave, setNumberSave] = useState(0);
-  const[post, setPost] = useState({})
+  const[post, setPost] = useState({});
+  // const[comments, setComments] = useState([]);
   
   /**
    * states redux
    */
   const userP = useSelector(state => state.posts.user);
   const theme = useSelector(state => state.posts.themeW);
-  // const comments = useSelector(state => state.posts.comments);
+  const comments = useSelector(state => state.posts.comments);
   const link = useSelector(state => state.posts.linkBaseBackend);
   const deletePostRedux = (id) => dispatch(deletePostAction(id));
-  // const getUserRedux = token => dispatch(getUserAction(token));
-  // const getCommentsRedux = (comments) => dispatch(getCommentsAction(comments));
+  const getUserRedux = token => dispatch(getUserAction(token));
+  const getCommentsRedux = (comments) => dispatch(getCommentsAction(comments));
 
   /**
    * useEffect
@@ -74,10 +75,27 @@ const ViewPost = () => {
       .then((response) => response.json())
       .then((post) => {
         console.log(post);
-        setPost(post)
+        // setPost(post)
         // getCommentsRedux(post.commenstOnPost.comments);
-        setNumberLike(post.likePost.users.length);
-        setNumberSave(post.usersSavedPost.users.length)
+        // setNumberLike(post.likePost.users.length);
+        // setNumberSave(post.usersSavedPost.users.length);
+      })  
+    } catch (error) {
+     console.log(error); 
+    }
+  }, [params.id]);
+
+  useEffect(() => {
+    try {
+      fetch(`${link}/pages/page-view-post/${params.id}`)
+      .then((response) => response.json())
+      .then((viewPost) => {
+        console.log(viewPost);
+        // setComments(viewPost.comments);
+        getCommentsRedux(viewPost.comments);
+        setPost(viewPost.post);
+        setNumberLike(viewPost.post.likePost.users.length);
+        setNumberSave(viewPost.post.usersSavedPost.users.length);
       })  
     } catch (error) {
      console.log(error); 
@@ -193,10 +211,8 @@ const ViewPost = () => {
         position="bottom-right"
         reverseOrder={false}
       />
-      <div 
-        className='flex justify-center'
-      >
-        <div className=' flex-col hidden sm:block text-white sticky top-10 h-[90%] p-4 mt-30'>
+      <div className='flex justify-center'>
+        <div className='flex-col hidden sm:block text-white sticky top-10 h-[90%] p-4 mt-30'>
           <ActionsPost 
             user={userP}
             like={like}
@@ -211,15 +227,15 @@ const ViewPost = () => {
             post={post}
           />
         </div>
-        <div className='w-auto sm:w-4/6 lg:w-5/12'>
-          <div className={`${theme ? ' bgt-light text-black' : 'bgt-dark text-white'}    rounded-lg `}>
-            <div className=''>
-              <div className="overflow-hidden h-AUTO">
+        <div className='w-full sm:w-4/6 lg:w-5/12'>
+          <div className={`${theme ? ' bgt-light text-black' : 'bgt-dark text-white'} rounded-lg`}>
+            <div className='flex justify-center items-center'>
+              <div className="overflow-hidden h-40 sm:h-72 w-full">
                 {post.linkImage && (
                   <img
-                    className="img-cover"
+                    className="object-cover object-center w-full h-full"
                     src={post.linkImage.secure_url}
-                    alt="Sunset in the mountains"
+                    alt="post image"
                   />
                 )}
               </div>
@@ -241,7 +257,7 @@ const ViewPost = () => {
                 </Link>
               </div>
             ) : null}
-            <div className=" mt-2 px-4 py-1">
+            <div className=" mt-2 px-4 py-1 mb-5">
               <h2 className=' font-bold text-5xl mb-3'>{post.title}</h2>
               <p className="mb-3 font-normal ">Posted on {new Date(post.createdAt).toDateString()}</p>
               <div className='flex justify-between'>
@@ -268,7 +284,7 @@ const ViewPost = () => {
                   </div>
                   <div className='flex'>
                     <div className='flex items-center'>
-                      <p className='mx-3'>{post.commenstOnPost.comments.length}</p>
+                      <p className='mx-3'>{comments.length}</p>
                       <FontAwesomeIcon
                         icon={faComment}
                         className={`text-white  mx-auto  rounded`}
@@ -308,13 +324,17 @@ const ViewPost = () => {
               />
             </div>
           </div>
+          {/* <div className='w-auto block sm:hidden mb-20'>
+            <UserCard user={post.user} />
+          </div> */}
 
-          {/* <div className=''>
+          <div className=''>
             <p className={`${theme ? 'text-black' : ' text-white'} text-5xl my-3`}>Comments:</p>
             <NewComment
               user={userP}
               idPost={params.id}
               comments={comments}
+              // setComments={setComments}
               userPost={post.user}
             />
             {comments.map(comment => (
@@ -325,32 +345,21 @@ const ViewPost = () => {
               />
             ))}
 
-          </div> */}
-          <div className='mb-20 sm:mb-0'>
-            <UserCard user={post.user} />
           </div>
-          {/* <div className='block sm:hidden'>
-            <PostRecom 
-              title={post.title}
-              id={params.id}
-              user={post.user}
-            />
-          </div> */}
+
+
 
         </div>
-        {/* <div className='mx-2 hidden md:block'>
-          <PostRecom 
-            title={post.title}
-            id={params.id}
-            user={post.user}
-          />
+        {/* <div className='w-auto hidden sm:block lg:w-3/12'>
+            <UserCard user={post.user} />
         </div> */}
+
 
 
 
         <div className={`${theme ? ' bgt-light text-black' : 'bgt-dark'} text-white fixed z-1 bottom-0 w-full p-1 block sm:hidden`}>
           <div className='flex justify-center '>
-            <ActionsPost
+            {/* <ActionsPost
               user={userP}
               like={like}
               id={params.id}
@@ -360,7 +369,7 @@ const ViewPost = () => {
               handleLike={handleLike}
               handleSave={handleSave}
               post={post}
-            />
+            /> */}
           </div>
         </div>
       </div>

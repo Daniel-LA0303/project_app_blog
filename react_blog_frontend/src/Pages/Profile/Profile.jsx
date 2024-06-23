@@ -7,12 +7,11 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import PersonIcon from '@mui/icons-material/Person';
 
-import { useDispatch, useSelector } from 'react-redux';
-import { getOneUserAction, getUserAction } from '../../StateRedux/actions/postAction';
+import { useSelector } from 'react-redux';
 
 import Sidebar from '../../components/Sidebar/Sidebar';
 
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 import Spinner from '../../components/Spinner/Spinner';
 import axios from 'axios';
@@ -181,7 +180,6 @@ const Profile = () => {
                 <div className={`${theme ? 'bgt-light ' : 'bgt-dark text-white'} flex flex-col min-w-0 break-word w-full mb-6 shadow-xl rounded-lg text-center `}>
                   <div className=" py-4 lg:pt-4 ">
                     <div className="flex items-center p-3 text-center">
-                      {/* <FontAwesomeIcon icon={faFile} className=' text-lg text-green-600 mr-3' /> */}
                       <InsertDriveFileIcon />
                       <span className="text-sm font-bold block uppercase tracking-wide text-blueGray-600 mx-1">
                         {user.posts.length} {''}
@@ -192,7 +190,6 @@ const Profile = () => {
                     </div>
 
                     <div className="flex items-center p-3 text-center">
-                      {/* <FontAwesomeIcon icon={faHeart} className=' text-lg text-red-500 mr-3' />  */}
                       <FavoriteIcon />
                       <span className="text-sm font-bold block uppercase tracking-wide text-blueGray-600 mx-1">
                         {user.likePost.posts.length}
@@ -202,7 +199,6 @@ const Profile = () => {
                       </span>
                     </div>
                     <div className="flex items-center p-3 text-center">
-                      {/* <FontAwesomeIcon icon={faUser} className=' text-lg text-blue-700 mr-3' /> */}
                       <PersonIcon />
                       <span className="text-sm font-bold block uppercase tracking-wide text-blueGray-600 mx-1">
                         {user.followersUsers.followers.length}

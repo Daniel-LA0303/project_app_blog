@@ -5,9 +5,21 @@ import { Link } from 'react-router-dom';
 
 
 const NewCardCategory = ({category, userP}) => {
+
+  /**
+   * states
+   */
+  const [isFollow, setIsFollow] = useState(false);
+
+  /**
+   * states Redux
+   */
   const theme = useSelector(state => state.posts.themeW);
   const link = useSelector(state => state.posts.linkBaseBackend);
-  const [isFollow, setIsFollow] = useState(false);
+  
+  /**
+   * useEffect
+   */
   useEffect(() => {
       const userInCat = category.follows.users.includes(userP._id);
       if(userInCat){
@@ -15,6 +27,9 @@ const NewCardCategory = ({category, userP}) => {
       }
   }, [userP])
   
+  /**
+   * functions
+   */
   const handleFollowTag = async() => {
     setIsFollow(!isFollow);
     try {

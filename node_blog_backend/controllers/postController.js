@@ -239,42 +239,6 @@ const dislikePost = async (req, res) => {
   }
 };
 
-
-// const savePost = async (req, res, next) =>{
-
-//     const post = await Post.findById(req.params.id)
-//     const user = await User.findById(req.body._id)
-
-//     const postFound = user.postsSaved.posts.includes(post._id);
-//     const userFound = post.usersSavedPost.users.includes(user._id);
-//     if(postFound && userFound){
-
-//         const arrayP = user.postsSaved.posts;
-//         const indexPost = arrayP.indexOf(post._id)
-//         arrayP.splice(indexPost, 1)        
-//         user.postsSaved.posts = arrayP;
-        
-//         const arrayU = post.usersSavedPost.users;
-//         const indexUser = arrayU.indexOf(user._id);
-//         arrayU.splice(indexUser, 1);
-//         post.usersSavedPost.users = arrayU;
-
-//         await post.save();
-//         await user.save();
-
-//     }else{
-
-//         const newPostOnUser = [...user.postsSaved.posts, post._id];
-//         user.postsSaved.posts = newPostOnUser;
-
-//         const newUserOnPost = [...post.usersSavedPost.users, user._id]
-//         post.usersSavedPost.users = newUserOnPost;
-
-//         await post.save();
-//         await user.save();
-//     }
-// }
-
 const savePost = async (req, res) => {
   try {
     const postId = req.params.id; // ID del post
@@ -464,7 +428,6 @@ const deleteReplyComment = async (req, res, next) =>{
 
     // save the post
     await post.save();
-
     await post.populate({
         path: "commenstOnPost.comments",
         populate: {
@@ -513,10 +476,12 @@ const editReplyComment = async (req, res, next) =>{
     } catch (error) {
         console.log(error);
     }
-
-
 }
+//-- Actions reply comment post end --//
 
+/**
+ * Pages Start
+ */
 
 /**
  * Filter post by category
@@ -597,7 +562,26 @@ const getEditOnePost = async (id) =>{
     console.log(error);
   }
 }
-//-- Actions reply comment post end --//
+
+const getViewPost = async (id) => {
+  try {
+      const post = await Post.findById(id)
+          .select('categoriesPost categoriesSelect content date desc likePost linkImage title usersSavedPost')
+          .populate({
+              path: 'user',
+              select: 'name email followedUsers followersUsers'
+          });
+      
+      return post;
+  } catch (error) {
+      console.error("Error en getViewPost:", error);
+      throw error; // Lanza el error para que sea capturado por el try-catch en getViewPostPage
+  }
+}
+/**
+ * Pages End
+ */
+
 
 export {
     //-- Upload image post start --//
@@ -641,5 +625,6 @@ export {
     editReplyComment,
     //-- Actions reply comment post end --//
     getAllPostsCard,
-    getEditOnePost
+    getEditOnePost,
+    getViewPost
 }

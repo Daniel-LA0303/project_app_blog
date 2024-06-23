@@ -84,7 +84,11 @@ const postSchema = Schema({
     date:{
         type: Number,
         required: false
-    }
+    },
+    comments: [{
+        type: Schema.ObjectId,
+        ref: 'Comment'
+    }],
 },
     {timestamps: true}
 );

@@ -13,7 +13,6 @@ import { log } from 'console';
 // --- Auth Users start --//
 const registerUser = async (req, res) => {
 
-    //evitar email o usuarios duplicados
     const {email} = req.body;
     const existUser = await User.findOne({email: email});
     
@@ -370,99 +369,10 @@ const followUser = async (req, res) => {
   
 // -- Actions beetween Users end --/
 
-
-//-- Dashboard start --//
-// const getUserTags = async (req, res) => {
-//         try {
-//         const user = await User.findById(req.params.id).populate({
-//             path: "followsTags",
-//             populate: {
-//                 path: "tags",
-
-//             }
-//         })
-//         res.json(user.followsTags.tags);            
-//     } catch (error) {
-//         res.status(500).json({error: 'Something went wrong'});
-//         next();
-//     }    
-// }
-
-// const getUserPosts = async (req, res) => {
-//     try {
-//         const user = await User.findById(req.params.id).populate('posts')
-//         res.json(user.posts); 
-//     } catch (error) {
-//         res.status(500).json({error: 'Something went wrong'});
-//         next(); 
-//     }
-// }
-
-// const getUserLikePosts= async (req, res) => {
-//     try {
-//         const user = await User.findById(req.params.id).populate({
-//             path: "likePost",
-//             populate: {
-//                 path: "posts",
-
-//             }
-//         })
-//         res.json(user.likePost.posts);            
-//     } catch (error) {
-//         res.status(500).json({error: 'Something went wrong'});
-//         next();
-//     }    
-// }
-
-// const getUserSavePosts = async (req, res) => {
-//     try {
-//         const user = await User.findById(req.params.id).populate({
-//             path: "postsSaved",
-//             populate: {
-//                 path: "posts",
-
-//             }
-//         })
-//         res.json(user.postsSaved.posts);            
-//     } catch (error) {
-//         res.status(500).json({error: 'Something went wrong'});
-//         next();
-//     }
-// }
-
-
-// const getOneUserFollow = async (req, res, next) =>{
-//     try {
-//         const user = await User.findById(req.params.id).populate({
-//             path: "followersUsers",
-//             populate: {
-//                 path: "followers",
-//             }
-//         }).populate({
-//             path: "followedUsers",
-//             populate: {
-//                 path: "followed",
-//             }
-//         })
-//         res.json(user);          
-//     } catch (error) {
-//         res.status(500).json({error: 'Something went wrong'});
-//         next();
-//     }    
-// }
-
-
-/*************** */
+/**
+ * Get user info for dashboard
+ */
 const getOneUserShortInfo = async (id) => {
-
-    /**
-     * postPublishsos
-     * followers
-     * postlikes
-     * postsaved
-     * tags saved
-     * follwed
-     */
     try {
         const userData = await User.findById(id)
             .select('posts followersUsers likePost postsSaved followsTags followedUsers')
@@ -484,12 +394,15 @@ const getOneUserShortInfo = async (id) => {
         return responseData;
                 
     } catch (error) {
-        // res.json({msg: 'This post does not exist'});
-        next();
+
     }   
 }
 
-
+/**
+ * Get user posts for dashboard
+ * @param {*} id 
+ * @returns 
+ */
 const getUserPosts = async (id) => {
     try {
         const user = await User.findById(id)
@@ -501,15 +414,18 @@ const getUserPosts = async (id) => {
                 },
                 select: 'title linkImage categoriesPost _id user likePost commenstOnPost date'
             })
-
         return user.posts;
     } catch (error) {
 
     }
 }
 
+/**
+ * Get user followers and followed for dashboard
+ * @param {*} id 
+ * @returns 
+ */
 const getOneUserFollow = async (id) =>{
-
     try {
         const user = await User.findById(id).populate({
             path: "followersUsers",
@@ -537,6 +453,11 @@ const getOneUserFollow = async (id) =>{
     }    
 }
 
+/**
+ * Get user like posts for dashboard
+ * @param {*} id 
+ * @returns 
+ */
 const getUserLikePosts= async (id) => {
     try {
         const user = await User.findById(id).populate({
@@ -548,19 +469,20 @@ const getUserLikePosts= async (id) => {
                     select: 'name _id profilePicture'
                 },
                 select : 'title linkImage categoriesPost _id user likePost commenstOnPost date'
-
             }
         })
-        
         return user.likePost.posts;
-          
     } catch (error) {
        
     }    
 }
 
+/**
+ * Get user save posts for dashboard
+ * @param {*} id 
+ * @returns 
+ */
 const getUserSavePosts = async (id) => {
-
     try {
         const user = await User.findById(id).populate({
             path: "postsSaved",
@@ -579,21 +501,30 @@ const getUserSavePosts = async (id) => {
     }
 }
 
+/**
+ * Get user tags for dashboard
+ * @param {*} id 
+ * @returns 
+ */
 const getUserTags = async (id) => {
-    
     try {
         const user = await User.findById(id).populate({
             path: "followsTags",
             populate: {
                 path: "tags",
-
             }
         })
         return user.followsTags.tags;
     } catch (error) {
+
     }    
 }
 
+/**
+ * Get user info for dashboard
+ * @param {*} id 
+ * @returns 
+ */
 const getOneUserProfile = async (id) =>{
     try {
         const user = await User.findById(id).populate({
@@ -619,12 +550,15 @@ const getOneUserProfile = async (id) =>{
         })
         return user;         
     } catch (error) {
-        console.log(error);
-        // res.json({msg: 'This post does not exist'});
-        // next();
+
     }    
 }
 
+/**
+ * Get user info for dashboard
+ * @param {*} id 
+ * @returns 
+ */
 const getOneUserEditProfile = async (id) => {
     try {
         const user = await User.findById(id)
@@ -632,7 +566,7 @@ const getOneUserEditProfile = async (id) => {
         return user;
     }
     catch (error) {
-        console.log(error);
+        
     }
 }
 

@@ -7,12 +7,26 @@ import { changeThemeAction } from '../../StateRedux/actions/postAction';
 
 const ConfigButton = () => {
 
+    /**
+     * states
+     */
     const [open, setOpen] = useState(false);
+
+    /**
+     * states Redux
+     */
     const dispatch = useDispatch();
     const changeThemeRedux = () => dispatch(changeThemeAction());
     const theme = useSelector(state => state.posts.themeW);
+
+    /**
+     * useRef
+     */
     let menuRef = useRef();
 
+    /**
+     * useEffect
+     */
     useEffect(() => {
         let handler = (e)=>{
           if(!menuRef.current.contains(e.target)){
@@ -25,6 +39,9 @@ const ConfigButton = () => {
         }
     });
 
+    /**
+     * functions
+     */
     const handleChange = () => {
         changeThemeRedux();
     }
@@ -56,10 +73,6 @@ const ConfigButton = () => {
                     <div>
                     <h2 className='mb-3'>Theme</h2>
                         <div className='flex justify-start items-center'>
-                            {/* <span className="switch">
-                                <input id="switch-round" type="checkbox" onChange={handleChange}/>
-                                <label htmlFor="switch-round"></label>
-                            </span> */}
                             {theme ? 
                                 <FontAwesomeIcon 
                                     className=' text-xl text-yellow-400 mx-1 cursor-pointer' 

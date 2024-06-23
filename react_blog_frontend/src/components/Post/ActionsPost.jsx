@@ -18,7 +18,7 @@ const ActionsPost = ({
 }) => {
   return (
     <>
-      <div className="my-3 text-2xl mx-10 sm:mx-0 flex flex-row sm:flex-col justify-center items-center">
+      {/* <div className="my-3 text-2xl mx-10 sm:mx-0 flex flex-row sm:flex-col justify-center items-center">
         {like ? (
           <button
             onClick={() => handleDislike(id)}
@@ -59,7 +59,7 @@ const ActionsPost = ({
           </button>
         )}
         <p>{numberSave}</p>
-      </div>
+      </div> */}
     </>
   );
 }

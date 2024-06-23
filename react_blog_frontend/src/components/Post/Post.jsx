@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
-import { useDispatch, useSelector } from 'react-redux'
+import { useSelector } from 'react-redux'
 import Spinner from '../Spinner/Spinner'
 import axios from 'axios'
 
 import { faHeart, faBookmark, faComment } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { getAllPostsAction, getUserAction } from '../../StateRedux/actions/postAction'
 import { toast, Toaster } from 'react-hot-toast'
 
 const notify = () => toast(
@@ -28,23 +27,28 @@ const notify = () => toast(
 
 const Post = ({post}) => {
 
-    const dispatch = useDispatch();
-    const getUserRedux = token => dispatch(getUserAction(token));
-    const getAllPostsRedux = () => dispatch(getAllPostsAction());
-
-    const {title, linkImage, categoriesPost, _id, desc, createdAt, user, likePost, commenstOnPost, date} = post;
-
+    /**
+     * states
+     */
     const[like, setLike] = useState(false);
     const[numberLike, setNumberLike] =  useState(0);
     const[save, setSave] = useState(false);
     const[imageProfile, setImageProfile] = useState('');
 
+    const {title, linkImage, categoriesPost, _id, desc, createdAt, user, likePost, commenstOnPost, date} = post;
+
+    /**
+     * states Redux
+     */
     const link = useSelector(state => state.posts.linkBaseBackend);
     const PF = useSelector(state => state.posts.PFPost);
     const PP = useSelector(state => state.posts.PFLink);
     const userP = useSelector(state => state.posts.user);
     const theme = useSelector(state => state.posts.themeW);
 
+    /**
+     * useEffect
+     */
     useEffect(() => {
         const getOnePost = async () => {
             try {
@@ -78,6 +82,9 @@ const Post = ({post}) => {
         }
     }, []);
 
+    /**
+     * functions
+     */
     const handleDislike = async (id) => {
         setLike(false);
         setNumberLike(numberLike-1)
@@ -138,14 +145,10 @@ const Post = ({post}) => {
 
         <div className=" h-full  w-full md:w-8/12 n leading-normal">
           <div className=" px-5 h-full flex flex-col justify-evenly">
-            {/* <div className='flex justify-between mt-2 sm:mt-0 items-center'> */}
             <h5 className="mb-2 text-2xl   font-bold tracking-tight ">
               {title}
             </h5>
-
-            {/* </div> */}
             <Toaster position="bottom-right" reverseOrder={false} />
-            {/* <p className="mb-3 font-normal text-gray-700 dark:text-gray-400">{desc}</p> */}
             <div className="mb-3">
               {categoriesPost.map((cat) => (
                 <Link

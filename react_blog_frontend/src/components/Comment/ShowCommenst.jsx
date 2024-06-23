@@ -21,7 +21,18 @@ const notify = () => toast(
 );
 
 const ShowCommenst = ({ comment, idPost }) => {
-    const PF = useSelector(state => state.posts.PFLink);
+
+    /**
+     * states
+     */
+    const [editActive, setEditActive] = useState(false);
+    const [newComment, setNewComment] = useState('');
+    const [replyActive, setReplyActive] = useState(false);
+    const [commentId, setCommentId] = useState('');
+
+    /**
+     * states Redux
+     */
     const userP = useSelector(state => state.posts.user);
     const theme = useSelector(state => state.posts.themeW);
     const link = useSelector(state => state.posts.linkBaseBackend);
@@ -29,17 +40,34 @@ const ShowCommenst = ({ comment, idPost }) => {
     const editCommentRedux = (comment) => dispatch(editCommentAction(comment));
     const deleteCommentRedux = (date) => dispatch(deleteCommentAction(date));
 
-    const [editActive, setEditActive] = useState(false);
-    const [newComment, setNewComment] = useState('');
-    const [replyActive, setReplyActive] = useState(false);
-    const [commentId, setCommentId] = useState('');
+
 
 
     useEffect(() => {
         setNewComment(comment.comment);
     }, [])
 
+    const handleEditComment = async (id) => {
 
+        notify();
+        setEditActive(!editActive);
+        editCommentRedux({
+            userID: comment.userID,
+            comment: newComment,
+            dateComment: comment.dateComment,
+            _id: comment._id,
+            replies: comment.replies
+        })
+        try {
+
+            const res = await axios.put(`${link}/comments/edit-comment/${comment._id}`, {                
+                comment: newComment,
+            }).then(res => {
+            })
+        } catch (error) {
+            console.log(error);
+        }
+    }
 
     // -- Actions comments start
     const handleDeleteComment = async (id, date) => {
@@ -56,37 +84,12 @@ const ShowCommenst = ({ comment, idPost }) => {
             if (result.value) {
                 deleteCommentRedux(date);
                 try {
-                    const res = await axios.post(`${link}/posts/delete-post-comment/${idPost}`, { id })
+                    const res = await axios.delete(`${link}/comments/delete-comment/${comment._id}`)
                 } catch (error) {
                     console.log(error);
                 }
             }
         })
-    }
-
-    const handleEditComment = async (id) => {
-
-        notify();
-        setEditActive(!editActive);
-        editCommentRedux({
-            userID: comment.userID,
-            comment: newComment,
-            dateComment: comment.dateComment,
-            _id: comment._id,
-            replies: comment.replies
-        })
-        try {
-
-            const res = await axios.post(`${link}/posts/edit-post-comment/${idPost}`, {
-                userID: comment.userID,
-                comment: newComment,
-                dateComment: comment.dateComment,
-                _id: comment._id
-            }).then(res => {
-            })
-        } catch (error) {
-            console.log(error);
-        }
     }
 
     // -- Actions comments end
@@ -95,19 +98,18 @@ const ShowCommenst = ({ comment, idPost }) => {
     const handleDeleteReply = async (idReply) => {
         try {
 
-            const res = await axios.post(`${link}/posts/delete-reply-comment/${idPost}`, {
-                idReply,
-                idComment: comment._id
-            })
-           
-            const repliesF = res.data.filter(reply => reply._id === comment._id);
+            const res = await axios.post(`${link}/replies/delete-reply/${idReply}`, {
+                commentID: comment._id
+            });
 
+            console.log(res.data);
+           
             editCommentRedux({
                 userID: comment.userID,
                 comment: comment.comment,
                 dateComment: comment.dateComment,
                 _id: comment._id,
-                replies: repliesF[0].replies
+                replies: res.data.replies
             })
         } catch (error) {
             console.log(error);
@@ -115,22 +117,19 @@ const ShowCommenst = ({ comment, idPost }) => {
     }
 
     const handleEditReply = async (newReply, reply) => {
-        // console.log(newReply, reply);
+        console.log(newReply, reply);
 
         try {
-            const res = await axios.post(`${link}/posts/edit-reply-comment/${idPost}`, {
-                idReply: reply._id,
-                idComment: comment._id,
-                newContentReply: newReply
+            const res = await axios.put(`${link}/replies/edit-reply/${reply._id}`, {
+                reply: newReply,
+                commentID: comment._id
             })
-            // console.log(res.data);
-            const repliesF = res.data.filter(reply => reply._id === comment._id);
             editCommentRedux({
                 userID: comment.userID,
                 comment: comment.comment,
                 dateComment: comment.dateComment,
                 _id: comment._id,
-                replies: repliesF[0].replies
+                replies: res.data.replies
             })
         } catch (error) {
             console.log(error);

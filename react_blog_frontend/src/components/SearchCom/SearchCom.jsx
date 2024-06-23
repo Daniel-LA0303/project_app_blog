@@ -3,19 +3,30 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useState } from 'react'
 import { useSelector } from 'react-redux';
 import NewCardCategory from '../CategoryCard/NewCardCategory';
-import PostSearch from '../Post/PostSearch';
 import UserCard from '../UserCard/UserCard';
 import './SearchCom.css'
 import Post from '../Post/Post';
 
 const SearchCom = ({cats, posts, users}) => {
-  const userP = useSelector(state => state.posts.user);
-  const theme = useSelector(state => state.posts.themeW);
+
+  /**
+   * states
+   */
   const [toggleState, setToggleState] = useState(1);
 
+  /**
+   * states Redux
+   */
+  const userP = useSelector(state => state.posts.user);
+  const theme = useSelector(state => state.posts.themeW);
+  
+  /**
+   * functions
+   */
   const toggleTab = (index) => {
     setToggleState(index);
-  };
+  }; 
+  
   return (
     <>
       <div className="container-search my-10 mx-auto md:w-10/12 lg:w-8/12">

@@ -1,5 +1,10 @@
 import Categories from '../models/Categories.js'
 
+/**
+ * Add new category
+ * @param {*} req 
+ * @param {*} res 
+ */
 const addCategory = async(req, res) => {
     const newCategory = new Categories(req.body);
     try {
@@ -13,11 +18,15 @@ const addCategory = async(req, res) => {
     }
 }
 
+/**
+ * Update category
+ * @param {*} req 
+ * @param {*} res 
+ */
 const updateCategories = async(req, res) => {  
     console.log(req.params.id); 
     const category = await Categories.findById(req.params.id);
     try {
-
         category.color = req.body.color;
         category.desc = req.body.desc;
         await category.save();
@@ -35,10 +44,9 @@ const updateCategories = async(req, res) => {
 const getCategories = async() => {
     try {
         const cats = await Categories.find()
-        // .populate('follows');
         return cats;
     } catch (error) {
-
+        
     }
 }
 
@@ -48,15 +56,13 @@ const getCategories = async() => {
  * @param {*} res 
  */
 const getCategoriesNotZero = async(req, res) => {
-
     try {
         const cats = await Categories.find({ 'follows.countFollows': { $gt: 0 } })
             .select('name color follows.countFollows');
         return cats;
     } catch (error) {
-        res.status(500).json(error);
-    }
 
+    }
 }
 
 /**
@@ -70,13 +76,12 @@ const getAllCategorisInfo = async(req, res) => {
             .select('name color desc value label ');
         return cats;
     } catch (error) {
-        res.status(500).json(error);
+
     }
 }
 
-
 /**
- * 
+ * Get one category
  * @param {*} req 
  * @param {*} res 
  */
@@ -87,15 +92,21 @@ const getOneCategory = async(id) => {
         .select('name color desc');
         return category;
     } catch (error) {
-        // res.status(500).json(error);
+        
     }
 }
 
 export {
+    /**
+     * 
+     */
     addCategory,
     getCategories,
     getOneCategory,
     updateCategories,
     getCategoriesNotZero,
     getAllCategorisInfo
+    /**
+     * 
+     */
 }

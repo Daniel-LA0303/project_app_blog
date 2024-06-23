@@ -49,7 +49,7 @@ const DashBoardProfile = () => {
               <Sidebar />
               <h1 className={`${theme ? 'text-black' : 'text-white'} text-center mt-10`}>Dashboard</h1>
               <div className=' mt-2'>
-                  <DashBoard counts={pageDashboard}/>
+                <DashBoard counts={pageDashboard}/>
               </div>
             </>
           )

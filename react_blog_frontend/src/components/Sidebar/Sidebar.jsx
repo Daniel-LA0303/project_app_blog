@@ -17,24 +17,26 @@ import { Badge, IconButton } from '@mui/material'
 import { Notifications } from '@mui/icons-material'
 import AsideMenu from '../Aside/AsideMenu'
 
-import { io } from 'socket.io-client'
-
-let socket;
-
 const Sidebar = () => {
 
+  /**
+   * states
+   */
   const [open, setOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
 
+  /**
+   * states Redux
+   */
   const user = useSelector(state => state.posts.user);
   const loading = useSelector(state => state.posts.loading);
   const theme = useSelector(state => state.posts.themeW);
   const link = useSelector(state => state.posts.linkBaseBackend);
-
-  const [notifications, setNotifications] = useState([])
-
-
   const dispatch = useDispatch();
 
+  /**
+   * useEffect
+   */
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
@@ -46,50 +48,7 @@ const Sidebar = () => {
     setNotifications(user.notifications)
   }, [user]);
 
-  useEffect(() => {
-    // const socket = io('http://localhost:4000');
-
-    // // Suscribirse al evento newNotification
-    // socket.on('newNotification', (newNotification) => {
-    //     if (user._id !== newNotification.userID) {
-    //       setNotifications(prevNotifications => [...prevNotifications, newNotification]);
-    //     }
-    //     // console.log('newNotification', newNotification);
-        
-    // });
-}, );
-
-
-  // useEffect(() => {
-  //   socket = io('http://localhost:4000')  
-  //   socket.on('newCommentNo', (data) => {
-  //     if(data.userId === user._id){
-  //       console.log('xd', data);
-  //     }
-
-  //   })
-  // })
-
-
-
-  /*ya se resolvio lo de socket.io
-  emite desde el front, llega al back y en el back emite de nuevo
-  despues y finalmente llega al front y se muestra en el navegador
-  
-  */
-
-  // useEffect(() => {
-  //   socket = io('http://localhost:4000');
-  //   socket.on('newNotification', (newNotification) => {
-  //     setNotifications(prevNotifications => [...prevNotifications, newNotification]);
-  // });
-  // socket.emit('test')
-  //   console.log('conectado');
-  // }, []);
-
-  const homePath = "/";
-
-  // Comprobar si estás en la página "Home"
+  const homePath = "/"; 
   const isHome = location.pathname === homePath;
 
   return (

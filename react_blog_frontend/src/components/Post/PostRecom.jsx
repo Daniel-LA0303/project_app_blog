@@ -29,9 +29,6 @@ const PostRecom = ({title, id, user}) => {
       window.location.href = `/view-post/${id}`
     }
 
-
-    // if(Object.keys(post) == '' ) return <Spinner />
-
   return (
     <div className='mb-20 sm:mb-0'>
         <UserCard user={user} />

@@ -24,6 +24,9 @@ const UserPosts = () => {
   const theme = useSelector(state => state.posts.themeW);
   const link = useSelector(state => state.posts.linkBaseBackend);
 
+  /**
+   * useEffect
+   */
   useEffect(() => {
     setLoading(true);
     fetch(`${link}/pages/page-dashboard-post-user/${params.id}`)
