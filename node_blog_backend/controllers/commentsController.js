@@ -148,13 +148,12 @@ const editComment = async(req, res) => {
 
 const deleteComment = async(req, res) => {
     try {
-        // throw new Error("Simulated error in getUserPosts");
         const comment = await Comment.findById(req.params.id);
         if (comment.userID.toString() !== req.query.user) {
             return res.status(401).json({ error: 'Error', msg: "Unauthorized" });
         }
-        await Comment.findByIdAndDelete(req.params.id);
-        res.json({msg: 'Comment deleted'});
+        await comment.remove(); // Esto activará el middleware y eliminará las respuestas
+        res.json({ msg: 'Comment deleted' });
     }
     catch (error) {
         res.status(500).json(error);

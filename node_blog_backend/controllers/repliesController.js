@@ -30,7 +30,7 @@ const createReply = async (req, res) => {
 
       const reply = new Replies({
           reply: req.body.reply,
-          commentId: req.params.id,
+          commentID: req.params.id,
           userID: req.body.userID,
           postID: req.body.postID,
           dateReply: new Date()

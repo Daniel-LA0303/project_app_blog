@@ -36,7 +36,7 @@ const Post = ({post}) => {
     const[save, setSave] = useState(false);
     const[imageProfile, setImageProfile] = useState('');
 
-    const {title, linkImage, categoriesPost, _id, desc, createdAt, user, likePost, commenstOnPost, date} = post;
+    const {title, linkImage, categoriesPost, _id, desc, createdAt, user, likePost, commenstOnPost, date, comments} = post;
 
     /**
      * states Redux
@@ -235,7 +235,7 @@ const Post = ({post}) => {
                     )}
                   </div>
                   <div className="flex items-center">
-                    <p className="mx-3">{commenstOnPost.comments.length}</p>
+                    <p className="mx-3">{comments.length}</p>
                     <FontAwesomeIcon
                       icon={faComment}
                       className={`text-stone-500 mx-auto  rounded`}

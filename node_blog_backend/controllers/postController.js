@@ -6,6 +6,7 @@ import path from "path"
 // import fs from "fs"
 import fs from "fs-extra"
 import { deleteImage, uploadImage, uploadImagePost } from '../config/cloudinary.js';
+import Reply from '../models/Replies.js';
 
 // -- Upload image post start --//
 const uploadImagePostController = async (req, res) => {
@@ -131,8 +132,10 @@ const deletePost = async (req, res, next) =>{
             await deleteImage(post.linkImage.public_id) 
         }
         user.numberPost = user.numberPost - 1;
+        // Remove the post from the user's posts array
+        user.posts = user.posts.filter(postId => postId.toString() !== req.params.id);
         await user.save();
-        await Post.findByIdAndDelete({_id: req.params.id});
+        await post.remove();
         res.status(200).json({msg: 'The post has been eliminated'})
     } catch (error) {
         console.log(error);
@@ -570,7 +573,7 @@ const getAllPostsCard = async (req, res, next) =>{
             path: 'user',
             select: 'name _id profilePicture' 
         })
-        .select('title linkImage categoriesPost _id user likePost commenstOnPost date');
+        .select('title linkImage categoriesPost _id user likePost commenstOnPost date comments');
     return post2;
   } catch (error) {
       console.error("Error in getAllPostsCard:", error);

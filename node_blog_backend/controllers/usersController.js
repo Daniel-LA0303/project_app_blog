@@ -435,7 +435,7 @@ const getUserPosts = async (id) => {
                     path: "user",
                     select: 'name _id profilePicture'
                 },
-                select: 'title linkImage categoriesPost _id user likePost commenstOnPost date'
+                select: 'title linkImage categoriesPost _id user likePost commenstOnPost date comments'
             })
         return user.posts;
     } catch (error) {
@@ -492,7 +492,7 @@ const getUserLikePosts= async (id) => {
                     path: "user",
                     select: 'name _id profilePicture'
                 },
-                select : 'title linkImage categoriesPost _id user likePost commenstOnPost date'
+                select : 'title linkImage categoriesPost _id user likePost commenstOnPost date comments'
             }
         })
         return user.likePost.posts;
@@ -516,7 +516,7 @@ const getUserSavePosts = async (id) => {
                     path: "user",
                     select: 'name _id profilePicture'
                 },
-                select : 'title linkImage categoriesPost _id user likePost postsSaved commenstOnPost date'
+                select : 'title linkImage categoriesPost _id user likePost postsSaved commenstOnPost date comments'
             },
         })
         return user.postsSaved.posts;

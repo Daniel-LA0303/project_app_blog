@@ -22,19 +22,20 @@ const AsideMenu = ({user}) => {
     /**
      * useEffect
      */
-    // useEffect(() => {
-    //     if(user){
-    //       try {
-    //         fetch(`${link}/pages/page-dashboard-tag-use/${user._id}`)
-    //             .then((response) => response.json())
-    //             .then((tags) => {
-    //                 setCategoriesUser(tags.categories);
-    //             })
-    //       } catch (error) {
-    //           console.error(error.message);
-    //       }
-    //     }      
-    //   }, [user]);
+    useEffect(() => {
+        if(user){
+          try {
+            fetch(`${link}/pages/page-dashboard-tag-use/${user._id}`)
+                .then((response) => response.json())
+                .then((tags) => {
+                    setCategoriesUser(tags.categories);
+                    console.log(tags.categories);
+                })
+          } catch (error) {
+              console.error(error.message);
+          }
+        }      
+      }, [user]);
 
   return (
       <div className={`${theme ? 'bgt-light ' : 'bgt-dark text-white'} mx-2 rounded-sm`}>
@@ -68,7 +69,7 @@ const AsideMenu = ({user}) => {
               <SocialMedia />
           </div>
 
-            {/* {
+            {
                 !user._id ? null : (
                     <div className='my-2'>
                         <p className=' text-center'>My Tags</p>
@@ -84,7 +85,7 @@ const AsideMenu = ({user}) => {
                             </div>
                     </div>
                 )
-            } */}
+            }
       </div>
   )
 }

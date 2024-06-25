@@ -1,4 +1,5 @@
  import mongoose from "mongoose";
+import Reply from "./Replies.js";
 const Schema = mongoose.Schema;
 
 const commentSchema = new Schema({
@@ -20,6 +21,15 @@ const commentSchema = new Schema({
     postID:{
         type: Schema.ObjectId,
         ref: 'Post'
+    }
+});
+
+commentSchema.pre('remove', async function(next) {
+    try {
+        await Reply.deleteMany({ commentID: this._id });
+        next();
+    } catch (err) {
+        next(err);
     }
 });
 

@@ -46,6 +46,7 @@ const Home = () => {
         .then((response) => {
             setCats(response.data.categories);
             setPosts(response.data.posts);
+            console.log(response.data);
             setLoading(false);
         })
         .catch((error) => {

@@ -150,6 +150,7 @@ const EditPost = () => {
                 // res.data.mensaje,
                 'success'
             )
+            route('/');
         });
     } catch (error) {
         console.log(error);
