@@ -52,7 +52,9 @@ const ViewPost = () => {
   const[numberLike, setNumberLike] =  useState(0);
   const[save, setSave] = useState(false);
   const[numberSave, setNumberSave] = useState(0);
+  const[numberComments, setNumberComments] = useState(0);
   const[post, setPost] = useState({});
+  const[loading, setLoading] = useState(false);
   // const[comments, setComments] = useState([]);
   
   /**
@@ -69,37 +71,47 @@ const ViewPost = () => {
   /**
    * useEffect
    */
-  useEffect(() => {
-    try {
-      fetch(`${link}/posts/${params.id}`)
-      .then((response) => response.json())
-      .then((post) => {
-        console.log(post);
-        // setPost(post)
-        // getCommentsRedux(post.commenstOnPost.comments);
-        // setNumberLike(post.likePost.users.length);
-        // setNumberSave(post.usersSavedPost.users.length);
-      })  
-    } catch (error) {
-     console.log(error); 
-    }
-  }, [params.id]);
 
   useEffect(() => {
-    try {
-      fetch(`${link}/pages/page-view-post/${params.id}`)
-      .then((response) => response.json())
-      .then((viewPost) => {
-        console.log(viewPost);
-        // setComments(viewPost.comments);
-        getCommentsRedux(viewPost.comments);
-        setPost(viewPost.post);
-        setNumberLike(viewPost.post.likePost.users.length);
-        setNumberSave(viewPost.post.usersSavedPost.users.length);
-      })  
-    } catch (error) {
-     console.log(error); 
-    }
+      setLoading(true);
+        axios.get(`${link}/pages/page-view-post/${params.id}`)
+        .then((response) => {
+            setNumberComments(response.data.comments.length);
+            getCommentsRedux(response.data.comments);
+            setPost(response.data.post);
+            setNumberLike(response.data.post.likePost.users.length);
+            setNumberSave(response.data.post.usersSavedPost.users.length);
+            console.log(response.data);
+            setTimeout(() => {
+                setLoading(false);
+            }, 500);
+        })
+        .catch((error) => {
+            console.log(error);
+            if(error.code === 'ERR_NETWORK'){
+            const data ={
+                error: true,
+                message: {
+                    status: null,
+                    message: 'Network Error',
+                    desc: null
+                }
+            }
+            setLoading(false);
+            route('/error', {state: data});
+            }else{
+            const data = {
+                error: true,
+                message: {
+                    status: error.response.status,
+                    message: error.message,
+                    desc: error.response.data.msg
+                }
+            }
+            setLoading(false);
+            route('/error', {state: data});
+            }
+        })
   }, [params.id]);
 
   useEffect(() => {
@@ -139,7 +151,7 @@ const ViewPost = () => {
       if (result.value) {
         try {
           // Consulta a la API
-          const res = await axios.delete(`${import.meta.env.VITE_API_URL_BACKEND}/posts/${id}`);
+          const res = await axios.delete(`${import.meta.env.VITE_API_URL_BACKEND}/posts/${id}?user=${userP._id}`);
           Swal.fire(
             res.data.msg,
             'success'
@@ -148,10 +160,12 @@ const ViewPost = () => {
             route('/');
           }, 2000);
         } catch (error) {
-          Swal.fire(
-            'Error deleting the post',
-            'error'
-          );
+          console.log(error);
+
+          Swal.fire({
+            title: 'Error deleting the post',
+            text: "Status " + error.response.status + " " + error.response.data.msg,
+          });
         }
       }
     });
@@ -159,47 +173,65 @@ const ViewPost = () => {
   
 
   const handleDislike = async (id) => {
-    setLike(false);
-    setNumberLike(numberLike-1);
+
     try {
       await axios.post(`${link}/posts/dislike-post/${id}`, userP);
+      setLike(false);
+      setNumberLike(numberLike-1);
     } catch (error) {
       console.log(error);
+      Swal.fire({
+        title: 'Error deleting the post',
+        text: "Status " + error.response.status + " " + error.response.data.msg,
+      });
     }
   }
 
   const handleLike = async (id) => {
-    setLike(true);
-    setNumberLike(numberLike+1);
+
     try {
         const res =await axios.post(`${link}/posts/like-post/${id}`, userP);
+        setLike(true);
+        setNumberLike(numberLike+1);
         console.log(res);
     } catch (error) {
         console.log(error);
+        Swal.fire({
+          title: 'Error deleting the post',
+          text: "Status " + error.response.status + " " + error.response.data.msg,
+        });
     }
   }
 
   const handleSave = async (id) => {
-    setSave(true);
-    setNumberSave(numberSave+1)
-    notify()
+
     try {
         await axios.post(`${link}/posts/save-post/${id}`, userP);
+        setSave(true);
+        setNumberSave(numberSave+1)
+        notify()
     } catch (error) {
         console.log(error);
-
+        Swal.fire({
+          title: 'Error deleting the post',
+          text: "Status " + error.response.status + " " + error.response.data.msg,
+        });
     }
   }
 
   const handleUnsave = async (id) => {
-    setSave(false);
-    setNumberSave(numberSave-1);
-    notify2()
+
     try {
         await axios.post(`${link}/posts/unsave-post/${id}`, userP);
+        setSave(false);
+        setNumberSave(numberSave-1);
+        notify2()
     } catch (error) {
         console.log(error);
-
+        Swal.fire({
+          title: 'Error deleting the post',
+          text: "Status " + error.response.status + " " + error.response.data.msg,
+        });
     }
   }
 
@@ -213,19 +245,25 @@ const ViewPost = () => {
       />
       <div className='flex justify-center'>
         <div className='flex-col hidden sm:block text-white sticky top-10 h-[90%] p-4 mt-30'>
-          <ActionsPost 
-            user={userP}
-            like={like}
-            id={params.id}
-            numberLike={numberLike}
-            numberSave={numberSave}
-            save={save}
-            handleLike={handleLike}
-            handleDislike={handleDislike}
-            handleSave={handleSave}
-            handleUnsave={handleUnsave}
-            post={post}
-          />
+          {
+            Object.keys(userP).length != 0 && (
+              <ActionsPost 
+                user={userP}
+                like={like}
+                id={params.id}
+                numberLike={numberLike}
+                numberSave={numberSave}
+                numberComments={numberComments}
+                save={save}
+                handleLike={handleLike}
+                handleDislike={handleDislike}
+                handleSave={handleSave}
+                handleUnsave={handleUnsave}
+                post={post}
+              />
+            )
+          }
+          
         </div>
         <div className='w-full sm:w-4/6 lg:w-5/12'>
           <div className={`${theme ? ' bgt-light text-black' : 'bgt-dark text-white'} rounded-lg`}>
@@ -264,16 +302,16 @@ const ViewPost = () => {
                 <div className='flex'>
                   <div className='flex'>
                     <p className='mx-3'>{numberLike}</p>
-                    {
-                      like ? (
-                        <button onClick={() => handleDislike(params.id)}>
+                    { 
+                      Object.keys(userP).length != 0 && like ? (
+                        <button onClick={() => handleDislike(params.id) }  disabled={Object.keys(userP) != '' ? false : true}>
                           <FontAwesomeIcon 
                               icon={faHeart} 
                               className={` text-red-400  mx-auto  rounded`}
                           />
                         </button>
                       ) : (
-                        <button onClick={() => handleLike(params.id)}>
+                        <button onClick={() => handleLike(params.id)}  disabled={Object.keys(userP) != '' ? false : true}>
                             <FontAwesomeIcon 
                                 icon={faHeart} 
                                 className={`text-stone-500 mx-auto  rounded`}
@@ -324,19 +362,22 @@ const ViewPost = () => {
               />
             </div>
           </div>
-          {/* <div className='w-auto block sm:hidden mb-20'>
+          <div className='w-auto block sm:hidden mb-20'>
             <UserCard user={post.user} />
-          </div> */}
+          </div>
 
           <div className=''>
             <p className={`${theme ? 'text-black' : ' text-white'} text-5xl my-3`}>Comments:</p>
-            <NewComment
-              user={userP}
-              idPost={params.id}
-              comments={comments}
-              // setComments={setComments}
-              userPost={post.user}
-            />
+              {
+                Object.keys(userP).length != 0 && (
+                  <NewComment
+                    user={userP}
+                    idPost={params.id}
+                    comments={comments}
+                    userPost={post.user}
+                  />
+                )
+              }
             {comments.map(comment => (
               <ShowCommenst
                 key={comment.dateComment}
@@ -350,26 +391,33 @@ const ViewPost = () => {
 
 
         </div>
-        {/* <div className='w-auto hidden sm:block lg:w-3/12'>
+        <div className='w-auto hidden sm:block lg:w-3/12'>
             <UserCard user={post.user} />
-        </div> */}
+        </div>
 
 
 
 
         <div className={`${theme ? ' bgt-light text-black' : 'bgt-dark'} text-white fixed z-1 bottom-0 w-full p-1 block sm:hidden`}>
           <div className='flex justify-center '>
-            {/* <ActionsPost
-              user={userP}
-              like={like}
-              id={params.id}
-              numberLike={numberLike}
-              numberSave={numberSave}
-              save={save}
-              handleLike={handleLike}
-              handleSave={handleSave}
-              post={post}
-            /> */}
+            {
+              Object.keys(userP).length != 0 && (
+                <ActionsPost 
+                  user={userP}
+                  like={like}
+                  id={params.id}
+                  numberLike={numberLike}
+                  numberSave={numberSave}
+                  numberComments={numberComments}
+                  save={save}
+                  handleLike={handleLike}
+                  handleDislike={handleDislike}
+                  handleSave={handleSave}
+                  handleUnsave={handleUnsave}
+                  post={post}
+                />
+              )
+            }
           </div>
         </div>
       </div>

@@ -2,7 +2,7 @@ import axios from 'axios';
 import React, { useEffect, useState } from 'react'
 import Sidebar from '../../../components/Sidebar/Sidebar';
 
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import UserCard from '../../../components/UserCard/UserCard';
 import LoadingUser from '../../../components/Spinner/LoadingUser';
 import { useSelector } from 'react-redux';
@@ -13,6 +13,7 @@ const FollowedUsers = () => {
      * route
      */
     const params = useParams();
+    const navigate = useNavigate();
 
     /**
      * states
@@ -25,21 +26,47 @@ const FollowedUsers = () => {
      */
     const theme = useSelector(state => state.posts.themeW);
     const link = useSelector(state => state.posts.linkBaseBackend);
+    const userP = useSelector(state => state.posts.user);
 
     /**
      * useEffect
      */
     useEffect(() => {
       setLoading(true);
-      fetch(`${link}/pages/page-dashboard-follow-user/${params.id}`)
-        .then((response) => response.json())
-        .then((pageFollow) => {
-          setUsers(pageFollow.followers); 
-          console.log(pageFollow);
-      }) 
-      setTimeout(() => {
+      axios.get(`${link}/pages/page-dashboard-follow-user/${params.id}?user=${userP._id}`)
+      .then((response) => {
+        console.log(response.data);
+        setUsers(response.data.followed);  
+        setTimeout(() => {
           setLoading(false);
-      }, 500);
+        }, 500);
+        
+    }).catch((error) => {
+      console.log(error);
+      if(error.code === 'ERR_NETWORK'){
+        const data ={
+          error: true,
+            message: {
+              status: null,
+              message: 'Network Error',
+              desc: null
+            }
+        }
+        setLoading(false);
+        navigate('/error', {state: data});
+      }else{
+        const data = {
+          error: true,
+            message: {
+              status: error.response.status,
+              message: error.message,
+              desc: error.response.data.msg
+            }
+        }
+        setLoading(false);
+        navigate('/error', {state: data});
+      }
+    });
     }, [params.id]);
 
   return (
@@ -51,9 +78,9 @@ const FollowedUsers = () => {
             <>
               <LoadingUser />
             </>
-          ): <div className='grid gap-2 md:grid-cols-2 w-full mx-5 md:mx-0'>
+          ): <>
               {users.length === 0 ? (
-                <p className={`${theme ? 'text-black' : 'text-white'} text-center m-auto my-10 text-3xl`}>There is nothing around here yet</p>
+                <p className={`${theme ? 'text-black' : 'text-white'} text-center m-auto my-1 text-3xl`}>There is nothing around here yet</p>
               ): (
                 <>
                   {users.map(user => (
@@ -65,7 +92,7 @@ const FollowedUsers = () => {
                 </>
               )}
 
-          </div>}
+          </>}
         </div>
 
     </div>

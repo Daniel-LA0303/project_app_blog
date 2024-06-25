@@ -2,6 +2,7 @@ import axios from 'axios';
 import React, { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { editCommentAction } from '../../StateRedux/actions/postAction';
+import Swal from 'sweetalert2';
 
 const ReplyComment = ({
     setReplyActive,
@@ -39,6 +40,10 @@ const ReplyComment = ({
             })
         } catch (error) {
             console.log(error);
+            Swal.fire({
+                title: 'Error deleting the post',
+                text: "Status " + error.response.status + " " + error.response.data.msg,
+            });
         }
 
         setReplyActive(!replyActive);

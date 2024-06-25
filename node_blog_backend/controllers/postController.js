@@ -25,12 +25,17 @@ const uploadImagePostController = async (req, res) => {
 //-- CRUD post start --//
 //create a post
 const registerPost = async (req, res) => {
-
-    const user = await User.findById(req.body.user);
-    if (!user) {
-        return res.status(404).json({ error: "User not found" });
-    }
     try {
+        const user = await User.findById(req.body.user);
+        if (!user) {
+            return res.status(404).json({ error: "User not found", msg: "Error User not found"});
+        }
+
+        const postSearch = await Post.findOne({ title: req.body.title });
+        if (postSearch) {
+            return res.status(400).json({ error: "Post already exists", msg: "Error Post whith this title already exists"});
+        }
+
         const post = new Post(req.body);
         await post.save();
 
@@ -38,9 +43,10 @@ const registerPost = async (req, res) => {
         user.posts.push(post._id);
         await user.save();
 
-        res.json({ msg: "Post created correctly"})
+        res.status(201).json({ msg: "Post created correctly"})
     } catch (error) {
-        console.log(error);
+        console.error("Error in registerPost:", error);
+        res.status(400).json({ error: 'Error', msg: error.message });
     }
 }
 
@@ -75,6 +81,13 @@ const getOnePost = async (req, res, next) =>{
 //update a post
 const updatePost = async(req, res, next) => {
     try {
+        // throw new Error("Simulated error in getUserPosts");
+        const post1 = await Post.findById(req.params.id)
+        .select('user');
+
+        if (post1.user.toString() !== req.query.user) {
+            return res.status(401).json({ error: 'Error', msg: "Unauthorized" });
+        }
         if(req.body.previousName){
             if((req.body.previousName !== "")){
                 await deleteImage(req.body.previousName) 
@@ -91,30 +104,39 @@ const updatePost = async(req, res, next) => {
             },
             {new: true}
         )
-        res.json({msg: 'Post has been edited'});
+        res.status(201).json({msg: 'Post has been edited'});
     } catch (error) {
-        console.log(error);
+        res.status(500).json({ error: 'Error', msg: error.message});
     }
 }
 
 //delete a post
 const deletePost = async (req, res, next) =>{
     //search info about
-    const post = await Post.findById(req.params.id)
-    const user = await User.findById(post.user)
 
-    if(post.linkImage !== ''){
-        await deleteImage(post.linkImage.public_id) 
-    }
 
     // delete info from db
     try {
+        const post = await Post.findById(req.params.id)
+        const user = await User.findById(post.user)
+        const post1 = await Post.findById(req.params.id)
+        .select('user');
+    
+        // throw new Error("Simulated error in getUserPosts");
+        if (post1.user.toString() !== req.query.user) {
+          return res.status(401).json({ error: 'Error', msg: "Unauthorized" });
+      }
+    
+        if(post.linkImage !== ''){
+            await deleteImage(post.linkImage.public_id) 
+        }
         user.numberPost = user.numberPost - 1;
         await user.save();
         await Post.findByIdAndDelete({_id: req.params.id});
-        res.json({msg: 'The post has been eliminated'})
+        res.status(200).json({msg: 'The post has been eliminated'})
     } catch (error) {
         console.log(error);
+        res.status(500).json({ error: 'Error', msg: error.message});
         next();
     }
 }
@@ -135,6 +157,8 @@ const getUserPost = async (req, res, next) =>{
 
 const searchByParam = async (req, res, next) =>{
     try {
+
+        // throw new Error("Simulated error in getUserPosts");
         const [posts, users, categories] = await Promise.all([
           Post.find({ title: { $regex: req.params.id, $options: 'i' } }).populate('user'),
           User.find({ $or: [{ name: { $regex: req.params.id, $options: 'i' } }, { email: { $regex: req.params.id, $options: 'i' } }] }), 
@@ -150,7 +174,7 @@ const searchByParam = async (req, res, next) =>{
         res.json(searchResults);
         console.log(posts);
       } catch (error) {
-        res.status(500).json({ error: 'Error to search' });
+        res.status(500).json({ error: 'Error to search',  msg: error.message });
       }
 }
 
@@ -189,6 +213,8 @@ const likePost = async (req, res) => {
   try {
     const postId = req.params.id; // ID del post
     const userId = req.body._id; // ID del usuario
+    
+    // throw new Error("Simulated error in getUserPosts");
 
     await Post.findByIdAndUpdate(
       postId,
@@ -208,7 +234,7 @@ const likePost = async (req, res) => {
 
     res.status(200).json({ message: 'Like on post updated successfully' });
   } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Internal server error', msg: error.message });
   }
 };
 
@@ -216,6 +242,8 @@ const dislikePost = async (req, res) => {
   try {
     const postId = req.params.id; // ID del post
     const userId = req.body._id; // ID del usuario
+
+    // throw new Error("Simulated error in getUserPosts");
 
     await Post.findByIdAndUpdate(
       postId,
@@ -235,7 +263,7 @@ const dislikePost = async (req, res) => {
 
     res.status(200).json({ message: 'Unlike on post updated successfully' });
   } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Internal server error', msg: error.message });
   }
 };
 
@@ -243,6 +271,8 @@ const savePost = async (req, res) => {
   try {
     const postId = req.params.id; // ID del post
     const userId = req.body._id; // ID del usuario
+
+    // throw new Error("Simulated error in getUserPosts");
 
     await User.findByIdAndUpdate(
       userId,
@@ -262,7 +292,7 @@ const savePost = async (req, res) => {
 
     res.status(200).json({ message: 'Post saved successfully' });
   } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Internal server error', msg: error.message });
   }
 };
 
@@ -270,6 +300,8 @@ const unsavePost = async (req, res) => {
   try {
     const postId = req.params.id; // ID del post
     const userId = req.body._id; // ID del usuario
+
+    // throw new Error("Simulated error in getUserPosts");
 
     await User.findByIdAndUpdate(
       userId,
@@ -289,7 +321,7 @@ const unsavePost = async (req, res) => {
 
     res.status(200).json({ message: 'Post unsaved successfully' });
   } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Internal server error', msg: error.message });
   }
 };
 
@@ -533,23 +565,16 @@ const getAllPosts = async (req, res, next) =>{
  */
 const getAllPostsCard = async (req, res, next) =>{
   try {
-      try {
-        const post2 = await Post.find({})
+    const post2 = await Post.find({})
         .populate({
-          path: 'user',
-          select: 'name _id profilePicture' 
+            path: 'user',
+            select: 'name _id profilePicture' 
         })
-        .select('title linkImage categoriesPost _id user likePost commenstOnPost date') 
-        return post2;
-    } catch (error) {
-        res.status(500).json({ error: 'Error to find posts' });
-        next();
-    }
-
-
+        .select('title linkImage categoriesPost _id user likePost commenstOnPost date');
+    return post2;
   } catch (error) {
-      res.status(500).json({ error: 'Error to find posts' });
-      next();
+      console.error("Error in getAllPostsCard:", error);
+      throw new Error('Error to find posts');
   }
 }
 
@@ -566,10 +591,10 @@ const getEditOnePost = async (id) =>{
 const getViewPost = async (id) => {
   try {
       const post = await Post.findById(id)
-          .select('categoriesPost categoriesSelect content date desc likePost linkImage title usersSavedPost')
+          .select('categoriesPost categoriesSelect content date desc likePost linkImage title usersSavedPost createdAt')
           .populate({
               path: 'user',
-              select: 'name email followedUsers followersUsers'
+              select: 'name email followedUsers followersUsers profilePicture'
           });
       
       return post;

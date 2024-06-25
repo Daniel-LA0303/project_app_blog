@@ -45,19 +45,44 @@ const EditProfile = () => {
      */
     useEffect(() => {
         setLoading(true);
-        fetch(`${link}/pages/page-edit-profile/${params.id}`)
-          .then((response) => response.json())
-          .then((pageEditProfile) => {
-            console.log(pageEditProfile);
-            setDesc(pageEditProfile.user.info.desc);
-            setWork(pageEditProfile.user.info.work);
-            setEducation(pageEditProfile.user.info.education);
-            setSkills(pageEditProfile.user.info.skills);
-            setImage(pageEditProfile.user.profilePicture);
-        }) 
-        setTimeout(() => {
+        axios.get(`${link}/pages/page-edit-profile/${params.id}?user=${user._id}`)
+        .then((response) => {
+            setDesc(response.data.user.info.desc);
+            setWork(response.data.user.info.work);
+            setEducation(response.data.user.info.education);
+            setSkills(response.data.user.info.skills);
+            setImage(response.data.user.profilePicture);
+            console.log(response.data);
+            setTimeout(() => {
+                setLoading(false);
+            }, 500);
+        })
+        .catch((error) => {
+            console.log(error);
+            if(error.code === 'ERR_NETWORK'){
+            const data ={
+                error: true,
+                message: {
+                    status: null,
+                    message: 'Network Error',
+                    desc: null
+                }
+            }
             setLoading(false);
-        }, 500);
+            route('/error', {state: data});
+            }else{
+            const data = {
+                error: true,
+                message: {
+                    status: error.response.status,
+                    message: error.message,
+                    desc: error.response.data.msg
+                }
+            }
+            setLoading(false);
+            route('/error', {state: data});
+            }
+        })
       }, [params.id]);
     
 
@@ -93,16 +118,22 @@ const EditProfile = () => {
         }
 
         try {
-            const res = await axios.post(`${link}/users/new-info/${params.id}`, data);
+            const res = await axios.post(`${link}/users/new-info/${params.id}?user=${user._id}`, data);
             Swal.fire(
                 res.data.msg,
                 'success'
             )
+            route(`/profile/${params.id}`);
         } catch (error) {
-            console.log(error);
+            Swal.fire({
+                title: error.response.data.msg,
+                text: "Status " + error.response.status,
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
         }
 
-        route(`/profile/${params.id}`);
+        
     }  
 
     if(Object.keys(user) === '') return <Spinner />

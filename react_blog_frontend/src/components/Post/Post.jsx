@@ -8,6 +8,7 @@ import axios from 'axios'
 import { faHeart, faBookmark, faComment } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { toast, Toaster } from 'react-hot-toast'
+import Swal from 'sweetalert2'
 
 const notify = () => toast(
     'Post saved.',
@@ -50,16 +51,7 @@ const Post = ({post}) => {
      * useEffect
      */
     useEffect(() => {
-        const getOnePost = async () => {
-            try {
-                const res = await axios.get(`${link}/posts/${post._id}`);
-                setImageProfile(res.data.user.profilePicture)
-            } catch (error) {
-                console.log(error);
-            }
-        }
-        getOnePost();
-
+        setImageProfile(user.profilePicture);
     }, []);
     
     useEffect(() => {
@@ -86,46 +78,66 @@ const Post = ({post}) => {
      * functions
      */
     const handleDislike = async (id) => {
+
+      try {
+        await axios.post(`${link}/posts/dislike-post/${id}`, userP);
         setLike(false);
-        setNumberLike(numberLike-1)
-        try {
-            await axios.post(`${link}/posts/dislike-post/${id}`, userP);
-        } catch (error) {
-            console.log(error);
-        }
+        setNumberLike(numberLike-1);
+      } catch (error) {
+        console.log(error);
+        Swal.fire({
+          title: 'Error deleting the post',
+          text: "Status " + error.response.status + " " + error.response.data.msg,
+        });
+      }
     }
-    
+  
     const handleLike = async (id) => {
-        setLike(true);
-        setNumberLike(numberLike+1);
-        try {
-            await axios.post(`${link}/posts/like-post/${id}`, userP);
-        } catch (error) {
-            console.log(error);
-        }
+  
+      try {
+          const res =await axios.post(`${link}/posts/like-post/${id}`, userP);
+          setLike(true);
+          setNumberLike(numberLike+1);
+          console.log(res);
+      } catch (error) {
+          console.log(error);
+          Swal.fire({
+            title: 'Error deleting the post',
+            text: "Status " + error.response.status + " " + error.response.data.msg,
+          });
+      }
     }
 
     const handleSave = async (id) => {
-        setSave(true);
-        notify()
+        
         try {
             await axios.post(`${link}/posts/save-post/${id}`, userP);
+            setSave(true);
+            notify();
         } catch (error) {
             console.log(error);
-
+            Swal.fire({
+              title: 'Error deleting the post',
+              text: "Status " + error.response.status + " " + error.response.data.msg,
+            });
         }
     }
 
     const handleUnSave = async (id) => {
-        notify2()
-        setSave(false);
+
         try {
             await axios.post(`${link}/posts/unsave-post/${id}`, userP);
+            notify2()
+            setSave(false);
         } catch (error) {
             console.log(error);
+            Swal.fire({
+              title: 'Error deleting the post',
+              text: "Status " + error.response.status + " " + error.response.data.msg,
+            });
         }
     }
-    if(Object.keys(post) == '' ) return <Spinner />
+
   return (
     <>
       <div

@@ -73,11 +73,12 @@ const getAllCommentsByPostFunction = async (id) => {
 
 
 const addComment = async (req, res) => {
-    const { id } = req.params; // id del post
-    const { userID, comment } = req.body;
 
     try {
         // Buscar el post por su ID
+        // throw new Error("Simulated error in getUserPosts");
+        const { id } = req.params; // id del post
+        const { userID, comment } = req.body;
         const post = await Post.findById(id);
         if (!post) {
             return res.status(404).json({ msg: 'Post not found' });
@@ -100,7 +101,7 @@ const addComment = async (req, res) => {
         res.json({ msg: 'Comment saved', comment: newComment });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: 'Server error', msg: error.message});
     }
 };
 
@@ -128,17 +129,30 @@ const getOneComment = async(req, res) => {
 
 const editComment = async(req, res) => {
     try {
+        // throw new Error("Simulated error in getUserPosts");
         const comment = await Comment.findById(req.params.id);
+        if(!comment){
+            return res.status(404).json({ error: 'Error', msg: "Comment not found" });
+        }
+        if (comment.userID.toString() !== req.query.user) {
+            return res.status(401).json({ error: 'Error', msg: "Unauthorized" });
+        }
+        console.log(comment.userID.toString());
         comment.comment = req.body.comment;
         await comment.save();
         res.json({msg: 'Comment updated'});
     } catch (error) {
-        res.status(500).json(error);
+        res.status(500).json({ error: 'Error', msg: error.message});
     }
 }
 
 const deleteComment = async(req, res) => {
     try {
+        // throw new Error("Simulated error in getUserPosts");
+        const comment = await Comment.findById(req.params.id);
+        if (comment.userID.toString() !== req.query.user) {
+            return res.status(401).json({ error: 'Error', msg: "Unauthorized" });
+        }
         await Comment.findByIdAndDelete(req.params.id);
         res.json({msg: 'Comment deleted'});
     }

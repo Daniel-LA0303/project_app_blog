@@ -17,9 +17,19 @@ import Spinner from '../../components/Spinner/Spinner';
 import axios from 'axios';
 import LoadingPosts from '../../components/Spinner/LoadingPosts';
 import Post from '../../components/Post/Post';
+import usePages from '../../context/hooks/usePages';
+import Error from '../../components/Error/Error';
+import Swal from 'sweetalert2';
 
 
 const Profile = () => {
+
+    /**
+   * context
+   */
+  const {errorPage, setErrorPage} = usePages();
+  const {error, message} = errorPage;
+  
 
   /**
    * router
@@ -32,6 +42,7 @@ const Profile = () => {
   const[isFollow, setIsFollow] = useState(null);
   const[posts, setPosts] = useState([]);
   const[user, setUser] = useState({}); //-> user view
+  const[loading, setLoading] = useState(false);
 
   /**
    * States Redux
@@ -43,57 +54,99 @@ const Profile = () => {
   /**
    * useEffect
    */
-  
   useEffect(() => {
-    fetch(`${link}/pages/page-profile-user/${params.id}`)
-    .then((response) => response.json())
-    .then((pageProfile) => {   
-      console.log(pageProfile);
-      if(pageProfile.user.followersUsers.followers.includes(userP._id)){
-        setIsFollow(true);
-      }else{
-        setIsFollow(false);
-      }
-      setPosts(pageProfile.posts);
-      setUser(pageProfile.user);
-    })   
+    setErrorPage({
+      error: false,
+      message: {}
+  });
+  }, []);
+
+  useEffect(() => {
+    setLoading(true);
+    axios.get(`${link}/pages/page-profile-user/${params.id}`)
+      .then((pageProfile) => {
+        console.log(pageProfile);
+        if(pageProfile.data.user.followersUsers.followers.includes(userP._id)){
+          setIsFollow(true);
+        }else{
+          setIsFollow(false);
+        }
+        setPosts(pageProfile.data.posts);
+        setUser(pageProfile.data.user);
+        setLoading(false);
+      }).catch((error) => {
+        console.log(error);
+        if(error.code === 'ERR_NETWORK'){
+          setErrorPage({
+              error: true,
+              message: {
+                status: null,
+                message: 'Network Error',
+                desc: null
+              }
+          });
+          setLoading(false);
+        }else{
+          setErrorPage({
+              error: true,
+              message: {
+                status: error.response.status,
+                message: error.response.data.message,
+                desc: error.response.data.message
+              }
+          });
+          
+          setLoading(false);
+        }
+      });  
   }, [params.id]);
 
   /**
    * Functions
    */
   const handleUnFollowUser = async() => {
-    setIsFollow(false);
+    
     try {
       await axios.post(`${link}/users/user-unfollow/${user._id}`, userP);
+      setIsFollow(false);
     } catch (error) {
       console.log(error);
+      Swal.fire({
+        title: 'Error deleting the post',
+        text: "Status " + error.response.status + " " + error.response.data.msg,
+      });
     }
-  }
+  } 
 
   const handleFollowUser = async() => {
-    setIsFollow(true);
+    
     try {
       await axios.post(`${link}/users/user-follow/${user._id}`, userP);
+      setIsFollow(true);
     } catch (error) {
       console.log(error);
+      Swal.fire({
+        title: 'Error deleting the post',
+        text: "Status " + error.response.status + " " + error.response.data.msg,
+      });
     }
   }
 
-  if(Object.keys(user) == '') return <Spinner />
+  // if(Object.keys(user) == '') return <Spinner />
   return (
     <div className=''>
       <Sidebar />
-      <section className="pt-8 sm:pt-8 ">
+      {
+        error ? <Error message={message}/>:
+        loading && !error ? <Spinner/> :
+        <section className="pt-8 sm:pt-8 ">
         <div className="w-full md:w-10/12 lg:w-8/12 mx-auto">
           <div className={`${theme ? 'bgt-light ' : 'bgt-dark text-white'} flex flex-col min-w-0 break-word w-full mb-6 shadow-xl rounded-lg mt-16`}>
             <div className="px-2 sm:px-6 ">
               <div className="flex flex-wrap justify-center">
                 <div className="w-full ml-10 md:ml-0 px-4 flex justify-start sm:justify-center">
                   <img alt="..." 
-                    src={           
-                      user?.profilePicture.secure_url != '' ? user.profilePicture.secure_url : 
-                      '/avatar.png'  } 
+                    src={user?.profilePicture?.secure_url ? user.profilePicture.secure_url : '/avatar.png'} 
                     className=" shadow-xl image_profile  h-auto align-middle border-none  -m-16  lg:-ml-16 max-w-150-px" />  
                 </div>
                 <div className='w-full flex justify-end'>
@@ -182,7 +235,7 @@ const Profile = () => {
                     <div className="flex items-center p-3 text-center">
                       <InsertDriveFileIcon />
                       <span className="text-sm font-bold block uppercase tracking-wide text-blueGray-600 mx-1">
-                        {user.posts.length} {''}
+                        {user?.posts?.length} {''}
                       </span>
                       <span className="text-sm text-blueGray-400">           
                         Posts published
@@ -192,7 +245,7 @@ const Profile = () => {
                     <div className="flex items-center p-3 text-center">
                       <FavoriteIcon />
                       <span className="text-sm font-bold block uppercase tracking-wide text-blueGray-600 mx-1">
-                        {user.likePost.posts.length}
+                        {user?.likePost?.posts?.length}
                       </span>
                       <span className="text-sm text-blueGray-400">
                         Likes on posts
@@ -201,7 +254,7 @@ const Profile = () => {
                     <div className="flex items-center p-3 text-center">
                       <PersonIcon />
                       <span className="text-sm font-bold block uppercase tracking-wide text-blueGray-600 mx-1">
-                        {user.followersUsers.followers.length}
+                        {user?.followersUsers?.followers?.length}
                       </span>
                       <span className="text-sm text-blueGray-400">
                         Followers
@@ -252,6 +305,8 @@ const Profile = () => {
           </div>
         </footer>
       </section>
+      }
+
     </div>
   )
 }

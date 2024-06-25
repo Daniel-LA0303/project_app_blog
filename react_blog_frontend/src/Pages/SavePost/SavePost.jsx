@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import Sidebar from '../../components/Sidebar/Sidebar'
 import Post from '../../components/Post/Post'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import axios from 'axios'
 import LoadingPosts from '../../components/Spinner/LoadingPosts'
 import { useSelector } from 'react-redux'
@@ -12,34 +12,60 @@ const SavePost = () => {
    * route
    */
   const params = useParams();
+  const navigate = useNavigate();
 
   /**
    * states
    */
   const[posts, setPosts] = useState([]);
   const[loading, setLoading] = useState(false);
-  // const[charge, setCharge] =useState(false);
 
   /**
    * states Redux
    */
   const theme = useSelector(state => state.posts.themeW);
   const link = useSelector(state => state.posts.linkBaseBackend);
+  const userP = useSelector(state => state.posts.user);
 
   /**
    * useEffect
    */
   useEffect(() => {
     setLoading(true);
-    fetch(`${link}/pages/page-dashboard-saved-post-user/${params.id}`)
-      .then((response) => response.json())
-      .then((postsU) => {
-        setPosts(postsU.posts);  
-        console.log(postsU.posts);
-    }) 
-    setTimeout(() => {
-        setLoading(false);
-    }, 500);
+    axios.get(`${link}/pages/page-dashboard-saved-post-user/${params.id}?user=${userP._id}`)
+      .then((response) => {
+        setPosts(response.data.posts); 
+        console.log(response.data);
+        setTimeout(() => {
+          setLoading(false);
+        }, 500);
+      })
+      .catch((error) => {
+        console.log(error);
+        if(error.code === 'ERR_NETWORK'){
+          const data ={
+            error: true,
+              message: {
+                status: null,
+                message: 'Network Error',
+                desc: null
+              }
+          }
+          setLoading(false);
+          navigate('/error', {state: data});
+        }else{
+          const data = {
+            error: true,
+              message: {
+                status: error.response.status,
+                message: error.message,
+                desc: error.response.data.msg
+              }
+          }
+          setLoading(false);
+          navigate('/error', {state: data});
+        }
+      })
   }, [params.id]);
   
   return (

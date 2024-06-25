@@ -2,6 +2,7 @@ import axios from 'axios';
 import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
+import Swal from 'sweetalert2';
 
 const UserCard = ({user}) => {
 
@@ -32,20 +33,30 @@ const UserCard = ({user}) => {
      * functions
      */
     const handleClickUnFollow = async() => {
-      setIsFollow(false);
+      
       try {
         await axios.post(`${link}/users/user-unfollow/${user._id}`, userP);
+        setIsFollow(false);
       } catch (error) {
         console.log(error);
+        Swal.fire({
+          title: 'Error deleting the post',
+          text: "Status " + error.response.status + " " + error.response.data.msg,
+        });
       }
     }
 
     const handleClickFollow = async() => {
-      setIsFollow(true);
+      
       try {
         await axios.post(`${link}/users/user-follow/${user._id}`, userP);
+        setIsFollow(true);
       } catch (error) {
           console.log(error);
+          Swal.fire({
+            title: 'Error deleting the post',
+            text: "Status " + error.response.status + " " + error.response.data.msg,
+          });
         }
     }
     

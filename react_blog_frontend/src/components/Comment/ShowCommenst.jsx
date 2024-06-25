@@ -51,21 +51,25 @@ const ShowCommenst = ({ comment, idPost }) => {
 
         notify();
         setEditActive(!editActive);
-        editCommentRedux({
-            userID: comment.userID,
-            comment: newComment,
-            dateComment: comment.dateComment,
-            _id: comment._id,
-            replies: comment.replies
-        })
+
         try {
 
-            const res = await axios.put(`${link}/comments/edit-comment/${comment._id}`, {                
+            const res = await axios.put(`${link}/comments/edit-comment/${comment._id}?user=${userP._id}`, {                
                 comment: newComment,
-            }).then(res => {
+            });
+            editCommentRedux({
+                userID: comment.userID,
+                comment: newComment,
+                dateComment: comment.dateComment,
+                _id: comment._id,
+                replies: comment.replies
             })
         } catch (error) {
             console.log(error);
+            Swal.fire({
+                title: 'Error editing the comment',
+                text: "Status " + error.response.status + " " + error.response.data.msg,
+              });
         }
     }
 
@@ -82,11 +86,16 @@ const ShowCommenst = ({ comment, idPost }) => {
             cancelButtonText: 'No, Cancel'
         }).then(async (result) => {
             if (result.value) {
-                deleteCommentRedux(date);
+                
                 try {
-                    const res = await axios.delete(`${link}/comments/delete-comment/${comment._id}`)
+                    const res = await axios.delete(`${link}/comments/delete-comment/${comment._id}?user=${userP._id}`)
+                    deleteCommentRedux(date);
                 } catch (error) {
                     console.log(error);
+                    Swal.fire({
+                        title: 'Error deleting the post',
+                        text: "Status " + error.response.status + " " + error.response.data.msg,
+                    });
                 }
             }
         })
@@ -96,31 +105,47 @@ const ShowCommenst = ({ comment, idPost }) => {
 
     //-- actions replies start
     const handleDeleteReply = async (idReply) => {
-        try {
 
-            const res = await axios.post(`${link}/replies/delete-reply/${idReply}`, {
-                commentID: comment._id
-            });
+        Swal.fire({
+            title: 'Are you sure you want to remove this Reply?',
+            text: "Deleted Reply cannot be recovered",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, Delete',
+            cancelButtonText: 'No, Cancel'
+        }).then(async (result) => {
+            if (result.value) {
+                try {
+                    const res = await axios.post(`${link}/replies/delete-reply/${idReply}?user=${userP._id}`, {
+                        commentID: comment._id
+                    });
+                    editCommentRedux({
+                        userID: comment.userID,
+                        comment: comment.comment,
+                        dateComment: comment.dateComment,
+                        _id: comment._id,
+                        replies: res.data.replies
+                    })
+                } catch (error) {
+                    console.log(error);
+                    Swal.fire({
+                        title: 'Error deleting the post',
+                        text: "Status " + error.response.status + " " + error.response.data.msg,
+                    });
+                }
+            }
+        })
 
-            console.log(res.data);
-           
-            editCommentRedux({
-                userID: comment.userID,
-                comment: comment.comment,
-                dateComment: comment.dateComment,
-                _id: comment._id,
-                replies: res.data.replies
-            })
-        } catch (error) {
-            console.log(error);
-        }
+        
     }
 
     const handleEditReply = async (newReply, reply) => {
         console.log(newReply, reply);
 
         try {
-            const res = await axios.put(`${link}/replies/edit-reply/${reply._id}`, {
+            const res = await axios.put(`${link}/replies/edit-reply/${reply._id}?user=${userP._id}`, {
                 reply: newReply,
                 commentID: comment._id
             })
@@ -133,6 +158,10 @@ const ShowCommenst = ({ comment, idPost }) => {
             })
         } catch (error) {
             console.log(error);
+            Swal.fire({
+                title: 'Error deleting the post',
+                text: "Status " + error.response.status + " " + error.response.data.msg,
+            });
         }
     }
 
@@ -194,13 +223,16 @@ const ShowCommenst = ({ comment, idPost }) => {
                     <p className="text-gray-500 dark:text-gray-400">{comment.comment}</p>
                 )}
                 <div className="flex items-center mt-4 space-x-4">
-                    <button
-                        type="button"
-                        onClick={() => handleReplyComment(comment._id)}
-                        className="flex items-center text-sm text-gray-500 hover:underline dark:text-gray-400">
-                        <svg aria-hidden="true" className="mr-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
-                        Reply
-                    </button>
+                    {
+                        Object.keys(userP).length != 0 &&
+                        <button
+                            type="button"
+                            onClick={() => handleReplyComment(comment._id)}
+                            className="flex items-center text-sm text-gray-500 hover:underline dark:text-gray-400">
+                            <svg aria-hidden="true" className="mr-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                            Reply
+                        </button>
+                    }
                 </div>
             </article>
             {

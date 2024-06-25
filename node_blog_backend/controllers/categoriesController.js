@@ -46,7 +46,8 @@ const getCategories = async() => {
         const cats = await Categories.find()
         return cats;
     } catch (error) {
-        
+        console.error("Error in getCategories:", error);
+        throw new Error('Error to find categories');
     }
 }
 
@@ -55,13 +56,14 @@ const getCategories = async() => {
  * @param {*} req 
  * @param {*} res 
  */
-const getCategoriesNotZero = async(req, res) => {
+const getCategoriesNotZero = async () => {
     try {
         const cats = await Categories.find({ 'follows.countFollows': { $gt: 0 } })
             .select('name color follows.countFollows');
         return cats;
     } catch (error) {
-
+        console.error("Error in getCategoriesNotZero:", error);
+        throw new Error('Error to find categories');
     }
 }
 
@@ -76,7 +78,8 @@ const getAllCategorisInfo = async(req, res) => {
             .select('name color desc value label ');
         return cats;
     } catch (error) {
-
+        console.error("Error in getAllCategorisInfo:", error);
+        throw new Error('Error to find categories');
     }
 }
 

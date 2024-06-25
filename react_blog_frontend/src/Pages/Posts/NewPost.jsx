@@ -15,8 +15,17 @@ import { useSelector } from 'react-redux';
 import Spinner from '../../components/Spinner/Spinner';
 import Swal from 'sweetalert2';
 import axios from 'axios';
+import usePages from '../../context/hooks/usePages';
+import Error from '../../components/Error/Error';
 
 const NewPost = () => {
+
+    /**
+     * context
+     */
+    const {errorPage, setErrorPage} = usePages();
+    const {error, message} = errorPage;
+
     /**
      * router
      */
@@ -45,22 +54,44 @@ const NewPost = () => {
      */
     useEffect(() => {
         setLoading(true);
-        if(categories.length === 0){
-            console.log("entro");
-            fetch(`${link}/pages/page-new-post/`)
-            .then((response) => response.json())
-            .then((cats) => {   
-                setCategories(cats.categories);
-                console.log(cats.categories);
-            })  
-        }else{
-            console.log("no entro");
-        }
-        
-        setTimeout(() => {
-            setLoading(false);
-        }, 500);
+        axios.get(`${link}/pages/page-new-post`)
+            .then((cats) => {
+                setCategories(cats.data.categories);
+                setLoading(false);
+            })
+            .catch((error) => {
+                console.log(error);
+                if(error.code === 'ERR_NETWORK'){
+                  setErrorPage({
+                      error: true,
+                      message: {
+                        status: null,
+                        message: 'Network Error',
+                        desc: null
+                      }
+                  });
+                  setLoading(false);
+                }else{
+                  setErrorPage({
+                      error: true,
+                      message: {
+                        status: error.response.status,
+                        message: error.message,
+                        desc: error.response.data.message
+                      }
+                  });
+                  setLoading(false);
+                }
+            })
     }, []);
+
+    useEffect(() => {
+        setErrorPage({
+          error: false,
+          message: {}
+      });
+      }, []);
+    
 
     /**
      * functions
@@ -100,6 +131,7 @@ const NewPost = () => {
         }
         const newDate = Date.now()
         const newPost = {
+            // user: user._id,
             user: user._id,
             title: title,
             content: content,
@@ -125,25 +157,39 @@ const NewPost = () => {
         }
 
         try {
-            const res = await axios.post(`${import.meta.env.VITE_API_URL_BACKEND}/posts`, newPost);
-            Swal.fire(
-                res.data.msg,
-                // 'You clicked the button!',
-                'success'
-              )
+            await axios.post(`${import.meta.env.VITE_API_URL_BACKEND}/posts`, newPost)
+                .then((response) => {   
+                    console.log(response.data);
+                    Swal.fire(
+                        response.data.msg,
+                        'success'
+                    )
+                    setTimeout(() => {
+                        route('/');
+                    }, 500);
+                })
+                .catch((error) => {
+                    console.log(error);
+                    Swal.fire({
+                        title: error.response.data.msg,
+                        text: "Status " + error.response.status,
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                });
+
 
         } catch (error) {
             console.log(error);
         }
         
-        setTimeout(() => {
-            route('/');
-        }, 500);
+
 }
 
   return (
     <div>
-        {loading ? (
+        {error ? <Error message={message}/>: 
+        loading && !error ? (
             <Spinner />
         ):(
             <>

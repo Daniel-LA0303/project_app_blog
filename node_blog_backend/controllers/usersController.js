@@ -13,14 +13,15 @@ import { log } from 'console';
 // --- Auth Users start --//
 const registerUser = async (req, res) => {
 
-    const {email} = req.body;
-    const existUser = await User.findOne({email: email});
-    
-    if(existUser){
-        const error = new Error('This email is already registered');
-        return res.status(400).json({msg: error.message});
-    }
     try {
+        // throw new Error("Simulated error in getUserPosts");
+        const {email} = req.body;
+        const existUser = await User.findOne({email: email});
+        
+        if(existUser){
+            const error = new Error('This email is already registered');
+            return res.status(400).json({msg: error.message});
+        }
         const user = new User(req.body);
         user.token = generateID();
         await user.save();
@@ -34,36 +35,42 @@ const registerUser = async (req, res) => {
         res.json({ msg: "User created correctly, check your email to confirm."})
     } catch (error) {
         console.log(error);
+        res.status(500).json({ error: 'Error', msg: error.message});
     }
 }
 
 const authUser = async (req, res) => {
+    try {
+        
+        const {email, password} = req.body;
+        //comprobar si el user existe
+        const user = await User.findOne({email : email});
+        if(!user){
+            const error = new Error("This user does not exist");
+            return res.status(404).json({msg: error.message});
+        }
 
-    const {email, password} = req.body;
-    //comprobar si el user existe
-    const user = await User.findOne({email : email});
-    if(!user){
-        const error = new Error("This user does not exist");
-        return res.status(404).json({msg: error.message});
-    }
+        //comprobar si el user esta confirmado
+        if(!user.confirm){
+            const error = new Error("This account has not been confirmed");
+            return res.status(403).json({msg: error.message});
+        }
 
-    //comprobar si el user esta confirmado
-    if(!user.confirm){
-        const error = new Error("This account has not been confirmed");
-        return res.status(403).json({msg: error.message});
-    }
-
-    //comporbar su password
-    if(await user.checkPassword(password)){
-        res.json({
-            _id: user.id,
-            name: user.name,
-            email: user.email,
-            token: generateJWT(user._id) //<-- genera un JWT
-        })
-    }else{
-        const error = new Error("Your password is incorrect");
-        return res.status(404).json({msg: error.message});
+        //comporbar su password
+        if(await user.checkPassword(password)){
+            res.json({
+                _id: user.id,
+                name: user.name,
+                email: user.email,
+                token: generateJWT(user._id) //<-- genera un JWT
+            })
+        }else{
+            const error = new Error("Your password is incorrect");
+            return res.status(404).json({msg: error.message});
+        }
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: 'Error', msg: error.message});
     }
 }
 
@@ -87,15 +94,15 @@ const confirm = async (req, res) => {
 }
 
 const forgetPassword = async(req, res) => {
-    const {email} = req.body;
-    const user = await User.findOne({email: email});
-    
-    if(!user){
-        const error = new Error('This user does not exist');
-        return res.status(400).json({msg: error.message});
-    }
-
     try {
+        // throw new Error("Simulated error in getUserPosts");
+        const {email} = req.body;
+        const user = await User.findOne({email: email});
+        
+        if(!user){
+            const error = new Error('This user does not exist');
+            return res.status(400).json({msg: error.message});
+        }
         user.token = generateID();
         await user.save();
         emailNewPassword({
@@ -106,40 +113,50 @@ const forgetPassword = async(req, res) => {
         res.json({msg: "We have sent an email with instructions"});
     } catch (error) {
         console.log(error);
+        res.status(500).json({ error: 'Error', msg: error.message});
     }
 }
 
 const checkToken = async (req, res) => {
-    const {token} = req.params;
+    try {
+        const {token} = req.params;
 
-    const tokenValid = await User.findOne({token});
+        const tokenValid = await User.findOne({token});
 
-    if(tokenValid){
-        res.json({msg: "Token valido y el usuario existe"})
-    }else{
-        const error = new Error('Token no valido');
-        return res.status(400).json({msg: error.message});
+        if(tokenValid){
+            res.json({msg: "Token valido y el usuario existe"})
+        }else{
+            const error = new Error('Token no valido');
+            return res.status(400).json({msg: error.message});
+        }
+    } catch (error) {
+        console.log(error);   
     }
 }
 
 const newPassword = async (req, res) => {
-    const {token} = req.params;
-    const {password} = req.body;
-
-    const user = await User.findOne({token});
-
-    if(user){
-        user.password = password //se asigna el nuevo password
-        user.token = '' //se reinicia el token
-        try {
-            await user.save();
-            res.json({msg: "Password Modified Correctly"}) 
-        } catch (error) {
-            console.log(error);
+    try {
+        const {token} = req.params;
+        const {password} = req.body;
+    
+        const user = await User.findOne({token});
+    
+        if(user){
+            user.password = password //se asigna el nuevo password
+            user.token = '' //se reinicia el token
+            try {
+                await user.save();
+                res.json({msg: "Password Modified Correctly"}) 
+            } catch (error) {
+                console.log(error);
+            }
+        }else{
+            const error = new Error('Invalid token');
+            return res.status(400).json({msg: error.message});
         }
-    }else{
-        const error = new Error('Invalid token');
-        return res.status(400).json({msg: error.message});
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: 'Error', msg: error.message });
     }
 }
 
@@ -160,7 +177,11 @@ const newInfoUser = async (req, res) => {
     // if(user){
 
         try {
+            // throw new Error("Simulated error in getUserPosts");
             const user = await User.findById(id);
+            if(req.params.id !== req.query.user){
+                return res.status(401).json({ error: 'Error', msg: "Unauthorized" });
+            }
             //cuando inserta una nueva imagen tienen que eliminar la anterior
             if(req.body.previousName){
                 if((req.body.previousName !== "")){
@@ -197,7 +218,7 @@ const newInfoUser = async (req, res) => {
             await user.save();
             res.json({msg: "User modified"}) 
         } catch (error) {
-            console.log(error);
+            res.status(500).json({ error: 'Error', msg: error.message });
         }
     // }
     // else{
@@ -276,7 +297,7 @@ const getAllUsers = async (req, res) => {
   
       res.status(200).json({ message: 'Follow tag updated successfully' });
     } catch (error) {
-      res.status(500).json({ error: 'Internal server error' });
+      res.status(500).json({ error: 'Internal server error', msg: error.message});
     }
   };
 
@@ -305,7 +326,7 @@ const getAllUsers = async (req, res) => {
   
       res.status(200).json({ message: 'Unfollow tag updated successfully' });
     } catch (error) {
-      res.status(500).json({ error: 'Internal server error' });
+      res.status(500).json({ error: 'Internal server error', msg: error.message});
     }
   };
   
@@ -313,6 +334,8 @@ const followUser = async (req, res) => {
     try {
       const userFollowedId = req.params.id; // ID del usuario a seguir
       const userProfileId = req.body._id; // ID del usuario que solicita seguir
+
+    //   throw new Error("Simulated error in getUserPosts");
   
       const userFollowed = await User.findByIdAndUpdate(
         userFollowedId,
@@ -334,7 +357,7 @@ const followUser = async (req, res) => {
   
       res.status(200).json({ message: 'Usuario seguido con éxito' });
     } catch (error) {
-      res.status(500).json({ error: 'Error interno del servidor' });
+      res.status(500).json({ error: 'Error interno del servidor', msg: error.message });
     }
   };
 
@@ -342,7 +365,7 @@ const followUser = async (req, res) => {
     try {
       const userFollowedId = req.params.id; // ID del usuario a dejar de seguir
       const userProfileId = req.body._id; // ID del usuario que solicita dejar de seguir
-  
+        // throw new Error("Simulated error in getUserPosts");
       const userFollowed = await User.findByIdAndUpdate(
         userFollowedId,
         {
@@ -363,7 +386,7 @@ const followUser = async (req, res) => {
   
       res.status(200).json({ message: 'Dejaste de seguir al usuario' });
     } catch (error) {
-      res.status(500).json({ error: 'Error interno del servidor' });
+      res.status(500).json({ error: 'Error interno del servidor', msg: error.message });
     }
   };
   
@@ -416,7 +439,8 @@ const getUserPosts = async (id) => {
             })
         return user.posts;
     } catch (error) {
-
+        console.error("Error in getUserPosts:", error);
+        throw new Error('Error to find users posts');
     }
 }
 
@@ -548,9 +572,14 @@ const getOneUserProfile = async (id) =>{
 
             }
         })
+
+        if (!user) { //-> no entra a esta excepcion, se va directamente a el catch
+            throw new Error('User not found');
+        }
         return user;         
     } catch (error) {
-
+        console.error("Error in getOneUserProfile:", error);
+        throw new Error('Error to find user');
     }    
 }
 

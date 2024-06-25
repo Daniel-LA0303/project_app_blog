@@ -42,26 +42,52 @@ const EditPost = () => {
      */
     const theme = useSelector(state => state.posts.themeW);
     const link = useSelector(state => state.posts.linkBaseBackend);
+    const userP = useSelector(state => state.posts.user);
 
     /**
      * useEffect
      */
     useEffect(() => {
+
         setLoading(true);
-        fetch(`${link}/pages/page-edit-post/${params.id}`)
-        .then((response) => response.json())
-        .then((pageEditPost) => {   
-        console.log(pageEditPost);
-          setCategories(pageEditPost.categories);
-          setTitle(pageEditPost.post.title);
-          setContent(pageEditPost.post.content);
-          setImage(pageEditPost.post.linkImage);
-          setCategoriesSelect(pageEditPost.post.categoriesSelect);
-          setDesc(pageEditPost.post.desc);
-        })  
-        setTimeout(() => {
+        axios.get(`${link}/pages/page-edit-post/${params.id}?user=${userP._id}`)
+        .then((response) => {
+            setCategories(response.data.categories);
+            setTitle(response.data.post.title);
+            setContent(response.data.post.content);
+            setImage(response.data.post.linkImage);
+            setCategoriesSelect(response.data.post.categoriesSelect);
+            setDesc(response.data.post.desc);
+            setTimeout(() => {
+                setLoading(false);
+            }, 500);
+        })
+        .catch((error) => {
+            console.log(error);
+            if(error.code === 'ERR_NETWORK'){
+            const data ={
+                error: true,
+                message: {
+                    status: null,
+                    message: 'Network Error',
+                    desc: null
+                }
+            }
             setLoading(false);
-        }, 500);
+            route('/error', {state: data});
+            }else{
+            const data = {
+                error: true,
+                message: {
+                    status: error.response.status,
+                    message: error.message,
+                    desc: error.response.data.msg
+                }
+            }
+            setLoading(false);
+            route('/error', {state: data});
+            }
+        })
       }, [params.id]);
 
   const onContent = (value) => {
@@ -118,21 +144,22 @@ const EditPost = () => {
     }
 
     try {
-        await axios.put(`${import.meta.env.VITE_API_URL_BACKEND}/posts/${params.id}`, postUpdate).then(res =>{
+        await axios.put(`${import.meta.env.VITE_API_URL_BACKEND}/posts/${params.id}?user=${userP._id}`, postUpdate).then(res =>{
             Swal.fire(
                 res.data.msg,
                 // res.data.mensaje,
                 'success'
             )
-        });;
+        });
     } catch (error) {
         console.log(error);
+        Swal.fire({
+            title: error.response.data.msg,
+            text: "Status " + error.response.status,
+            icon: 'error',
+            confirmButtonText: 'OK'
+        });
     }
-
-
-    setTimeout(() => {
-        route('/');
-    }, 800);
     
 }
 

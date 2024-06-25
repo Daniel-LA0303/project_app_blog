@@ -4,8 +4,17 @@ import DashBoard from '../../components/DashBoard/DashBoard'
 import { useSelector } from 'react-redux';
 import { Router, useNavigate, useParams } from 'react-router-dom';
 import Spinner from '../../components/Spinner/Spinner';
+import axios from 'axios';
+import Error from '../../components/Error/Error';
+import usePages from '../../context/hooks/usePages';
 
 const DashBoardProfile = () => {
+
+  /**
+   * context
+   */
+  const {errorPage, setErrorPage} = usePages();
+  const {error, message} = errorPage;
 
   /**
    * router
@@ -30,21 +39,52 @@ const DashBoardProfile = () => {
    */
   useEffect(() => {
     setLoading(true);
-    fetch(`${link}/pages/page-dashboard/${params.id}`)
-      .then((response) => response.json())
-      .then((pageDashboard) => {   
-        console.log(pageDashboard);
-        setPageDashboard(pageDashboard.userInfo);
-    })  
-    setTimeout(() => {
-        setLoading(false);
-    }, 500);
+    axios.get(`${link}/pages/page-dashboard/${params.id}?user=${userP._id}`)
+      .then((response) => {
+        setPageDashboard(response.data.userInfo);
+        setTimeout(() => {
+          setLoading(false);
+        }, 200);
+      })
+      .catch((error) => {
+        if(error.code === 'ERR_NETWORK'){
+          setErrorPage({
+              error: true,
+              message: {
+                status: null,
+                message: 'Network Error',
+                desc: null
+              }
+          });
+          setLoading(false);
+        }else{
+          setErrorPage({
+              error: true,
+              message: {
+                status: error.response.status,
+                message: error.message,
+                desc: error.response.data.msg
+              }
+          });
+          setLoading(false);
+        }
+      }) 
+
   }, [params.id]);
+
+
+  useEffect(() => {
+    setErrorPage({
+      error: false,
+      message: {}
+  });
+  }, []);
 
   return (
     <div>
         {
-          loading ? <Spinner/> : (
+          error ? <Error message={message}/>:
+          loading && !error ? <Spinner/> : (
             <>
               <Sidebar />
               <h1 className={`${theme ? 'text-black' : 'text-white'} text-center mt-10`}>Dashboard</h1>

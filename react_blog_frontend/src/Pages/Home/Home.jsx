@@ -10,9 +10,18 @@ import Aside from '../../components/Aside/Aside';
 import ScrollButton from '../../components/ScrollButton/ScrollButton';
 import Slider from '../../components/Slider/Slider'
 import AsideMenu from '../../components/Aside/AsideMenu';
+import usePages from '../../context/hooks/usePages';
+import Error from '../../components/Error/Error';
+import axios from 'axios';
 
 
 const Home = () => {
+
+  /**
+   * context
+   */
+  const {errorPage, setErrorPage} = usePages();
+  const {error, message} = errorPage;
 
   /**
    * States
@@ -33,22 +42,53 @@ const Home = () => {
    */
   useEffect(() => {
     setLoading(true);
-    fetch(`${link}/pages/page-home`)
-    .then((response) => response.json())
-    .then((pageHome) => {
-      setCats(pageHome.categories);
-      setPosts(pageHome.posts);   
-    })   
-    setTimeout(() => {
-      setLoading(false);
-    }, 500);
+    axios.get(`${link}/pages/page-home`)
+        .then((response) => {
+            setCats(response.data.categories);
+            setPosts(response.data.posts);
+            setLoading(false);
+        })
+        .catch((error) => {
+          console.log(error);
+          if(error.code === 'ERR_NETWORK'){
+            setErrorPage({
+                error: true,
+                message: {
+                  status: null,
+                  message: 'Network Error',
+                  desc: null
+                }
+            });
+            setLoading(false);
+          }else{
+            setErrorPage({
+                error: true,
+                message: {
+                  status: error.response.status,
+                  message: error.message,
+                  desc: error.response.data.message
+                }
+            });
+            setLoading(false);
+          }
+
+        });
+}, []);
+
+  useEffect(() => {
+    setErrorPage({
+      error: false,
+      message: {}
+  });
   }, []);
 
     
   return (
     <div className='  '>
         <Sidebar />
-        {loading ?  <LoadingPosts/> : 
+        {
+          error ? <Error message={message}/>:
+          loading && !error ? <LoadingPosts/> : 
         <>
           <div className=' block z-10 md:hidden md:visible w-full'>
             <Slider className=" " cats={cats}/>

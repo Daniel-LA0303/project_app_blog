@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import Sidebar from '../../../components/Sidebar/Sidebar'
 import LoadingCategory from '../../../components/Spinner/LoadingCategory'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import NewCardCategory from '../../../components/CategoryCard/NewCardCategory'
 import { useSelector } from 'react-redux'
+import axios from 'axios'
 
 const UserTags = () => {
 
@@ -11,6 +12,7 @@ const UserTags = () => {
    * route
    */
   const params = useParams();
+  const navigate = useNavigate();
 
   /**
    * states
@@ -30,14 +32,40 @@ const UserTags = () => {
    */
   useEffect(() => {
     setLoading(true);
-    fetch(`${link}/pages/page-dashboard-tag-user/${params.id}`)
-      .then((response) => response.json())
-      .then((pageCats) => {
-        setCategories(pageCats.categories);
-    }) 
-    setTimeout(() => {
-        setLoading(false);
-    }, 500);
+    axios.get(`${link}/pages/page-dashboard-tag-user/${params.id}?user=${userP._id}`)
+      .then((response) => {
+        setCategories(response.data.categories); 
+        console.log(response.data);
+        setTimeout(() => {
+          setLoading(false);
+        }, 500);
+      })
+      .catch((error) => {
+        console.log(error);
+        if(error.code === 'ERR_NETWORK'){
+          const data ={
+            error: true,
+              message: {
+                status: null,
+                message: 'Network Error',
+                desc: null
+              }
+          }
+          setLoading(false);
+          navigate('/error', {state: data});
+        }else{
+          const data = {
+            error: true,
+              message: {
+                status: error.response.status,
+                message: error.message,
+                desc: error.response.data.msg
+              }
+          }
+          setLoading(false);
+          navigate('/error', {state: data});
+        }
+      })
   }, [params.id]);
 
   

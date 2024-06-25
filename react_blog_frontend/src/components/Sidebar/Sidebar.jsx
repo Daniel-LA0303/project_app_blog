@@ -61,8 +61,8 @@ const Sidebar = () => {
             <div className='flex items-center justify-start  '>
               {/* {user._id ?  */}
               {/* // <> */}
-              <button className='ml-4 md:ml-0 block md:hidden' onClick={() => setOpen(true)}>
-                <FontAwesomeIcon icon={faBars} className={` text-3xl ${theme ? 'text-black' : 'text-white'}`} />
+              <button className='ml-4 md:ml-0 block md:hidden text-xs' onClick={() => setOpen(true)}>
+                <FontAwesomeIcon icon={faBars} className={` text-2xl ${theme ? 'text-black' : 'text-white'}`} />
               </button>
               {/* </> : null} */}
 
@@ -70,10 +70,10 @@ const Sidebar = () => {
               <SearchBar />
             </div>
 
-            <div className='w-full mx-1 sm:ml-5 flex items-center justify-end'>
+            <div className='w-full sm:ml-5 flex items-center justify-end'>
               {user._id ? (
-                <>
-                  <Link to='/new-post' className="hidden md:block custom-button ml-4">
+                <div className='flex mr-0'>
+                  <Link to='/new-post' className="hidden md:block custom-button ">
                     New Post
                   </Link>
                   <Link to={`/notifications/${user._id}`} >
@@ -86,16 +86,16 @@ const Sidebar = () => {
                   <div className=''>
                     <ProfileButton />
                   </div>
-                </>
+                </div>
 
               ) : (
                 <>
-                  <div className=' block sm:hidden'>
+                  <div className=' block sm:hidden mx-1'>
                     <ConfigButton />
                   </div>
                   <div className='hidden sm:flex '>
                     <div className=' w-20'>
-                      <Link to={'/login'} className="bg-blue-500 mx-1 hover:bg-blue-700 text-white font-bold py-2 px-4 border border-blue-700 rounded">Login</Link>
+                      <Link to={'/login'} className=" bg-blue-500 mx-1 hover:bg-blue-700 text-white font-bold py-2 px-4 border border-blue-700 rounded">Login</Link>
                     </div>
                     <div className=' w-28'>
                       <Link to={'/register'} className="bg-transparent mx-1 hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded">Sing Up</Link>

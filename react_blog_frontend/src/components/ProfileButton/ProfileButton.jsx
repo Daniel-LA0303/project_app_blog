@@ -49,7 +49,7 @@ const ProfileButton = () => {
   return (
     <div className={` ${theme ? 'bgt-light' : 'bgt-dark'}`}>
          <div className='menu-container' ref={menuRef}>
-            <div className='menu-trigger mr-1 md:mr-0' onClick={()=>{setOpen(!open)}}>
+            <div className='menu-trigger md:mr-0' onClick={()=>{setOpen(!open)}}>
                 <img
                     className='' 
                     src={ 
